@@ -15,6 +15,8 @@ export type StreamChunk = {
 
 export type UseIntelligenceStreamOptions = {
   onResponseSentence?: (sentence: string) => void;
+  /** Called once when the stream ends with the full accumulated response text (never thought content). */
+  onResponseFinalized?: (text: string) => void;
 };
 
 const SENTENCE_REGEX = /[.!?](\s+|$)/g;
@@ -45,12 +47,13 @@ function flushSentences(
 }
 
 export function useIntelligenceStream(options: UseIntelligenceStreamOptions = {}) {
-  const { onResponseSentence } = options;
+  const { onResponseSentence, onResponseFinalized } = options;
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamError, setStreamError] = useState<string | null>(null);
   const [thoughtLog, setThoughtLog] = useState("");
   const [mainResponse, setMainResponse] = useState("");
   const sentenceBufferRef = useRef("");
+  const responseAccumulatorRef = useRef("");
   const chunks: StreamChunk[] = [];
 
   const sendCommand = useCallback(
@@ -66,6 +69,7 @@ export function useIntelligenceStream(options: UseIntelligenceStreamOptions = {}
       setThoughtLog("");
       setMainResponse("");
       sentenceBufferRef.current = "";
+      responseAccumulatorRef.current = "";
       playCommandSubmitted();
 
       const url = `${baseUrl}/api/v1/command`;
@@ -120,6 +124,7 @@ export function useIntelligenceStream(options: UseIntelligenceStreamOptions = {}
               if (lastEventType === "thought") {
                 setThoughtLog((prev) => prev + segment);
               } else if (lastEventType === "response") {
+                responseAccumulatorRef.current += segment;
                 setMainResponse((prev) => prev + segment);
                 flushSentences(segment, sentenceBufferRef, onResponseSentence);
               }
@@ -152,6 +157,10 @@ export function useIntelligenceStream(options: UseIntelligenceStreamOptions = {}
             onResponseSentence?.(sentenceBufferRef.current.trim());
           }
           sentenceBufferRef.current = "";
+          const finalized = responseAccumulatorRef.current.trim();
+          if (finalized) {
+            onResponseFinalized?.(finalized);
+          }
         } finally {
           reader.releaseLock();
         }
@@ -163,7 +172,7 @@ export function useIntelligenceStream(options: UseIntelligenceStreamOptions = {}
         setIsStreaming(false);
       }
     },
-    [onResponseSentence],
+    [onResponseSentence, onResponseFinalized],
   );
 
   return {

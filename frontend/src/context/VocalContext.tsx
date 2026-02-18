@@ -46,9 +46,12 @@ function getSpeechRecognition(): (new () => SpeechRecognition) | null {
 export function VocalProvider({
   children,
   onCommandReady,
+  inhibitWhileSpeaking,
 }: {
   children: ReactNode;
   onCommandReady: (transcript: string) => void;
+  /** When true, mic is inhibited so the system does not hear its own TTS (Task 7 mic lock). */
+  inhibitWhileSpeaking?: boolean;
 }) {
   const [listeningMode, setListeningMode] = useState(false);
   const [isActive, setIsActive] = useState(false);
@@ -64,12 +67,18 @@ export function VocalProvider({
     onCommandReadyRef.current = onCommandReady;
   }, [onCommandReady]);
 
-  const triggerChime = useCallback(() => {
-    playWakeWordDetected();
-  }, []);
-
   const inhibit = useCallback((value: boolean) => {
     isInhibitedRef.current = value;
+  }, []);
+
+  useEffect(() => {
+    if (inhibitWhileSpeaking !== undefined) {
+      inhibit(inhibitWhileSpeaking);
+    }
+  }, [inhibitWhileSpeaking, inhibit]);
+
+  const triggerChime = useCallback(() => {
+    playWakeWordDetected();
   }, []);
 
   const setPromptText = useCallback((value: string) => {

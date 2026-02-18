@@ -142,7 +142,7 @@ Have the main wrapper bars pulse to portray loading state.
 - **Networking:** Ensure the React frontend can resolve the `argos-kernel` service in the Docker network.
 - **Environment:** Pass `VITE_KERNEL_URL=http://argos-kernel:8080` to the build process.
 
-#### [ ] Task 6: Tactical Audio Engine
+#### [x] Task 6: Tactical Audio Engine
 
 Implement an AudioBridge Service: Create a specialized service (using a custom hook or a library like howler.js) to manage three distinct audio channels:
 
@@ -168,6 +168,8 @@ The above audio files can be found in the assets folder.
 - **Voice Selection:** - **Option A (Local):** Filter `window.speechSynthesis.getVoices()` for the "Google UK English Female" or "Microsoft Zira" voice (the closest native matches to the TNG computer's cadence).
   - **Option B (Advanced):** Implement a TTS hook that triggers the moment the `response` chunk of the SSE stream is finalized.
 - **Persona Rules:** Ensure the voice uses a monotone, rhythmic "Majel" cadence. The voice should _only_ read the `response` content, never the `thought` (diagnostics) content.
+
+Only the response is read. Thoughts are not read.
 
 #### [ ] Task 8 (Totally optional). Ambient audio
 
