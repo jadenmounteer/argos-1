@@ -82,23 +82,73 @@ Mode OFF: Display 🔕 icon.
 The Frame: Set echoCancellation: true in getUserMedia constraints to optimize for open-speaker environments.
 
 5. Technical Contract (For Task 6 Compatibility)
-   Export a triggerChime() stub and an inhibit(boolean) function. This allows Task 6 to plug in the actual LCARS sounds and "Mute" logic later without refactoring the transcription flow.
+   Export a triggerChime() stub and an inhibit(boolean) function. This allows Task 6 to plug in the actual LCARS sounds and "Mute" logic later without refactoring the transcription flow.Simply set an error state so task 6 can hook into this later.
 
 Developer Note for Cursor
 "Keep the VocalProvider decoupled. It should only emit the final string via onCommandReady. Use the Gatekeeper pattern for inhibition: if (isInhibited) return; inside your speech result handlers. Ensure the getUserMedia constraints are passed to the WebVoiceProcessor used by Picovoice."
 
 #### [ ] Task 3: JSON-RPC over SSE Bridge
 
-- Build an `useIntelligenceStream` hook to connect to `POST /api/v1/command`.
-- **Stream Processing:** Use `TextDecoder` to read the SSE chunks and dispatch React state updates for `THOUGHT` vs `RESPONSE` chunks.
-- **Acceptance:** The UI must stream tokens word-by-word into the log window.
+Goal: Implement useIntelligenceStream to connect the LCARS UI to the ARGOS-1 Kernel using a JSON-RPC over Fetch-based SSE stream.
 
-#### [ ] Task 4: Engineering Log Display
+Prioritize the Fetch + ReadableStream pattern. Ensure you distinguish between the event: and data: lines in the SSE stream to correctly route text to either the thoughtLog or mainResponse states. Do not use params.text for the request; use params.input to match the Kernel DTO. Finally, ensure the 5s timeout is only cleared by an actual data event, not just the HTTP 200 response headers.
 
-- Create a `TacticalLog` component.
-- **Styling:** - Thoughts: Italicized, low-opacity text in the "Diagnostics" panel.
-  - Responses: High-contrast bold text in the "Main Viewport."
-- **Feedback:** Add a pulsing "Analyzing..." status bar when a `thought` chunk is being processed but no `response` is yet available.
+Phase 1: The POST-Stream Handshake ✅
+Endpoint: ${import.meta.env.VITE_KERNEL_URL}/api/v1/command
+
+Method: Must use fetch (POST), not EventSource, to support the JSON-RPC body.
+
+Payload Structure: ```json
+{
+"jsonrpc": "2.0",
+"method": "process_voice",
+"params": { "input": "CLEANED_TRANSCRIPT" },
+"id": "unique-uuid"
+}
+
+Stream Initialization: Use ReadableStream and TextDecoder("utf-8") to process the response body incrementally.
+
+Phase 2: Named Event Parsing & State Routing
+The Kernel sends Named Events. Do not just parse raw data; you must route based on the event: line.
+
+Logic:
+
+Identify the event: type (e.g., event: thought or event: response).
+
+Parse the subsequent data: line: JSON.parse(dataLine.replace('data: ', '')).
+
+Extract text from payload.params.text.
+
+State Management:
+
+thoughtLog (Science Teal): Append text from event: thought.
+
+mainResponse (Command Gold): Append text from event: response.
+
+Sentence Buffer (for Task 7):
+
+Monitor mainResponse. Use the heuristic Regex /[.!?](\s+|$)/ to detect full sentences. Speech synthesis (implemented in future task) will only read the response, not the thoughts.
+
+Action: Call onResponseSentence(sentence) as soon as a match is found. "Flush" any remaining text when the stream closes.
+
+Phase 3: Resilience, Timeout, and UI
+The 5s "First Content" Timeout:
+
+Start a timer when the POST is sent.
+
+Clear timer ONLY when the first valid thought or response event is successfully parsed.
+
+On failure: Set an error state ("COMMUNICATION BREAKDOWN") to trigger Task 6 alarms.
+
+Abort & Control:
+
+Implement AbortController.
+
+UI Requirement: Add a "STOP" button (LCARS style) in the bottom-right of the log area that triggers abort().
+
+Tactical Auto-Scroll:
+
+The TacticalLog must use a useEffect or useRef to stay pinned to the bottom as new thoughtLog or mainResponse tokens arrive.
 
 #### [ ] Task 5: Containerized Orchestration
 
@@ -124,15 +174,19 @@ SUBMIT_COMMAND ➔ Play Enter_Action_Beep.
 
 STREAM_ERROR ➔ Play System_Failure_Tone.
 
-Ambient Loop Logic: Ensure the background loop starts only after the first user interaction (to satisfy browser "Auto-play" policies) and fades in smoothly to avoid a jarring start.
-
-When the AI is "Thinking" (Task 4), you can slightly lower the volume of the Ambience Loop and increase the frequency of the Beep Sequences. This psychologically signals to the user that the "Computer" is busy working on their request.
-
 I have audio sounds I'll add to the assets directory soon.
 
-#### [ ] Task 7: The "Voice" (Text-to-Speech Synthesis)
+#### [ ] Task 7: The "Voice" (Text-to-Speech Synthesis) (This actually is covered in another milestone)
 
 - **Implementation:** Integrate the `window.speechSynthesis` API or a "Majel-cloned" ElevenLabs/Together.ai endpoint.
 - **Voice Selection:** - **Option A (Local):** Filter `window.speechSynthesis.getVoices()` for the "Google UK English Female" or "Microsoft Zira" voice (the closest native matches to the TNG computer's cadence).
   - **Option B (Advanced):** Implement a TTS hook that triggers the moment the `response` chunk of the SSE stream is finalized.
 - **Persona Rules:** Ensure the voice uses a monotone, rhythmic "Majel" cadence. The voice should _only_ read the `response` content, never the `thought` (diagnostics) content.
+
+#### [ ] Task 8 (Totally optional). Ambient audio
+
+Ambient Loop Logic: Ensure the background loop starts only after the first user interaction (to satisfy browser "Auto-play" policies) and fades in smoothly to avoid a jarring start.
+
+When the AI is "Thinking" (Task 4), you can slightly lower the volume of the Ambience Loop and increase the frequency of the Beep Sequences. This psychologically signals to the user that the "Computer" is busy working on their request.
+
+Note even sure I want to do this.
