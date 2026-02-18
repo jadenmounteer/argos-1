@@ -8,7 +8,7 @@ By the end of this milestone, ARGOS-1 will have thought and reasoned for the fir
 
 ### Tasks
 
-#### [ ] Task 1: Environment Initialization (Ollama)
+#### [x] Task 1: Environment Initialization (Ollama)
 
 Install Ollama and pull the deepseek-r1:8b model (or llama3.1:8b if hardware prefers).
 
@@ -16,7 +16,17 @@ Note on Model Selection: DeepSeek-R1 is highly recommended for this milestone be
 
 Verify the local API is reachable at http://localhost:11434/api/generate.
 
-#### [ ] Task 2: Spring Boot Kernel Setup
+I verified with this curl:
+
+```
+curl http://localhost:11434/api/generate -d '{
+"model": "deepseek-r1:8b",
+"prompt": "Why is the sky blue?",
+"stream": false
+}'
+```
+
+#### [x] Task 2: Spring Boot Kernel Setup
 
 Initialize a Spring Boot 3.3+ project with Java 21.
 
@@ -48,3 +58,7 @@ Create a docker-compose.yml that links the Spring Boot Hub, the React Console, a
 Use a Named Volume for Ollama (e.g., ollama_data:/root/.ollama) so models aren't re-downloaded when the container restarts.
 
 Senior Choice: Keep Ollama in its own container to demonstrate that the "Brain" is an interchangeable service.
+
+```
+
+```
