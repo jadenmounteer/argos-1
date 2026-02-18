@@ -40,12 +40,6 @@ body {
   padding-right: var(--page-inset);
 }
 
-/* Let LCARS buttons viewport headers size to content */
-.argos-status-bar lcars-button,
-.argos-viewport-header lcars-button {
-  --button-width: auto;
-  min-width: 80px;
-}
 
 /* Two-column layout: aside + logs, with clear gap */
 .app-shell__body {
@@ -68,24 +62,12 @@ body {
 .button-strip {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.button-strip-container {
-  display: flex;
-  gap: 0.5rem;
+  gap: var(--lcars-block-gap);
 }
 
 /* Prompt area container */
 .prompt-area {
   width: 100%;
-}
-
-.prompt-area__label {
-  font-size: 0.75rem;
-  color: var(--lcars-color-a9);
-  display: block;
-  margin-bottom: 0.25rem;
 }
 
 .prompt-area__input {
@@ -157,7 +139,7 @@ body {
 .main-wrapper__top {
   display: flex;
   align-items: stretch;
-  gap: 0.5rem;
+  gap: var(--lcars-block-gap);
   padding: 0.75rem 1rem;
 }
 

@@ -32,8 +32,8 @@ The Main Viewport: A large black central area where the "Tactical Logs" (your SS
 #### [ ] Task 2: The "Ears" (Wake Word & Speech)
 
 - **Implement `use-ear` Hook:** Create a `VocalProvider` that listens for the specific keyword "ARGOS" or "ARGOS-1".
-- **Logic Switch:** - **Passive:** Listening only for the Wake Word.
-  - **Active:** Upon detection, play the LCARS "Chime" (will be implemented in task 6) and begin full transcription into the command input.
+- **Logic Switch:** - **Passive:** Listening only for the Wake phrase: "ARGOS One".
+  - **Active:** Upon detection, play the LCARS "Chime" (will be implemented in task 6) and begin full transcription into the prompt area.
 - **Auto-Submit:** Implement a "Silence Detection" timer. If the user stops speaking for 1.5s after the command, automatically trigger the JSON-RPC POST.
 
 #### [ ] Task 3: JSON-RPC over SSE Bridge
