@@ -15,6 +15,8 @@ export type StreamChunk = {
 
 export type UseIntelligenceStreamOptions = {
   onResponseSentence?: (sentence: string) => void;
+  /** Called for each response segment as it arrives (for streaming TTS). */
+  onResponseChunk?: (segment: string) => void;
   /** Called once when the stream ends with the full accumulated response text (never thought content). */
   onResponseFinalized?: (text: string) => void;
 };
@@ -47,7 +49,7 @@ function flushSentences(
 }
 
 export function useIntelligenceStream(options: UseIntelligenceStreamOptions = {}) {
-  const { onResponseSentence, onResponseFinalized } = options;
+  const { onResponseSentence, onResponseChunk, onResponseFinalized } = options;
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamError, setStreamError] = useState<string | null>(null);
   const [thoughtLog, setThoughtLog] = useState("");
@@ -126,6 +128,7 @@ export function useIntelligenceStream(options: UseIntelligenceStreamOptions = {}
               } else if (lastEventType === "response") {
                 responseAccumulatorRef.current += segment;
                 setMainResponse((prev) => prev + segment);
+                onResponseChunk?.(segment);
                 flushSentences(segment, sentenceBufferRef, onResponseSentence);
               }
             } catch {
@@ -172,7 +175,7 @@ export function useIntelligenceStream(options: UseIntelligenceStreamOptions = {}
         setIsStreaming(false);
       }
     },
-    [onResponseSentence, onResponseFinalized],
+    [onResponseSentence, onResponseChunk, onResponseFinalized],
   );
 
   return {

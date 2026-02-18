@@ -5,16 +5,14 @@ import { useIntelligenceStream } from './hooks/useIntelligenceStream'
 import { AppShell } from './components/layout/AppShell'
 
 function AppWithVocal() {
-  const { speak, cancel, isSpeaking } = useComputerVoice()
+  const { speakSentence, cancel, isSpeaking } = useComputerVoice()
   const {
     sendCommand: streamSendCommand,
     thoughtLog,
     mainResponse,
     isStreaming,
   } = useIntelligenceStream({
-    onResponseFinalized: (text) => {
-      if (text.trim()) speak(text.trim())
-    },
+    onResponseSentence: (sentence) => speakSentence(sentence),
   })
   const sendCommand = useCallback(
     (text: string) => {
