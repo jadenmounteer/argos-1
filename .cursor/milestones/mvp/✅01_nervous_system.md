@@ -57,7 +57,7 @@ Implement a "Sanity Check" tool that tests if the LLM correctly identifies itsel
 
 Instead of a standard REST route, implement this as a custom HealthIndicator or a dedicated /actuator/identity endpoint.
 
-#### [ ] Task 5: JSON-RPC over SSE Bridge (Intelligence Gateway)
+#### [x] Task 5: JSON-RPC over SSE Bridge (Intelligence Gateway)
 
 Endpoint: Implement POST /api/v1/command as the primary entry point for agentic interactions.
 
@@ -77,6 +77,6 @@ Safety: Implement an idle-timeout and connection-cleanup strategy to prevent mem
 
 Make sure to place the JSON-RPC bridge in an application layer, not the domain.
 
-#### [ ] Task 6: Include Integration Tests to verify the connection between Spring Boot and the local Ollama API.
+#### [x] Task 6: Include Integration Tests to verify the connection between Spring Boot and the local Ollama API.
 
 Use WireMock for your standard integration tests, but structure your code so you can toggle a "Live Smoke Test" profile when you want to verify the real model.
