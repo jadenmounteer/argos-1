@@ -6,13 +6,8 @@ Implement the file-system "Sensor" that reads architectural rules from the .argo
 
 These rules can be shared by Cursor by having the .cursorRules reference the directives.
 
-Acknowledged, Commander. We are moving to the most critical "Senior" component of ARGOS-1: the Directive Protocol.
-
 This is what separates a generic chatbot from an Architectural argos. This protocol ensures that ARGOS-1 uses your local .argos/directives folder as its "Prime Directive," grounding its reasoning in your specific domain rules rather than generic training data.
 
-Add this to your .cursor/milestones/03_directive_protocol.md file.
-
-Milestone 03: Directive Protocol (The Truth)
 Goal: Create a high-fidelity context injection system that reads local Markdown files and uses them to ground the LLM's architectural analysis.
 
 ### Tasks

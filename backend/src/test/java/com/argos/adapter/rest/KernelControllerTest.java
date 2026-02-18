@@ -1,19 +1,20 @@
 package com.argos.adapter.rest;
 
-import com.argos.domain.model.ArgosCommand;
-import com.argos.domain.ports.IntelligencePort;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.argos.application.gateway.CommandGateway;
+import com.argos.application.gateway.JsonRpcCommandRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(KernelController.class)
 class KernelControllerTest {
@@ -21,24 +22,18 @@ class KernelControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @MockBean
-    private IntelligencePort intelligencePort;
+    private CommandGateway commandGateway;
 
     @Test
-    void command_postsInput_returnsAgentResponse() throws Exception {
-        when(intelligencePort.process(any(ArgosCommand.class)))
-                .thenReturn(new AgentResponse("", "", "Stub response"));
+    void command_postsJsonRpcBody_returnsSseStream() throws Exception {
+        when(commandGateway.runStream(any(JsonRpcCommandRequest.class)))
+                .thenReturn(new SseEmitter(0L));
 
         mockMvc.perform(post("/api/v1/command")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"input\": \"hello\"}"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.thought").value(""))
-                .andExpect(jsonPath("$.action").value(""))
-                .andExpect(jsonPath("$.response").value("Stub response"));
+                        .accept(MediaType.TEXT_EVENT_STREAM)
+                        .content("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"command\",\"params\":{\"input\":\"hello\"}}"))
+                .andExpect(status().isOk());
     }
 }
