@@ -47,6 +47,66 @@ body {
   min-width: 80px;
 }
 
+/* Aside: vertical layout, padding, gap, fixed width for 2x2 button grid */
+.aside-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem;
+  width: 16rem;
+  min-width: 0;
+}
+
+/* Button strip: flex wrap, even gutters → 2x2 grid */
+.button-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.button-strip-container {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+}
+
+/* Prompt area container */
+.prompt-area {
+  width: 100%;
+}
+
+.prompt-area__label {
+  font-size: 0.75rem;
+  color: var(--lcars-color-a9);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.prompt-area__input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 6rem;
+  max-height: 20rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 2px solid var(--lcars-color-a9);
+  background: var(--lcars-color-black);
+  color: var(--lcars-color-a5);
+  font: inherit;
+  resize: vertical;
+  overflow-y: auto;
+}
+
+.prompt-area__input::placeholder {
+  color: var(--lcars-color-a9);
+  opacity: 0.8;
+}
+
+.prompt-area__input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--lcars-color-a1);
+}
+
 /* App title in header break: yellow/gold, all caps, LCARS display font */
 .app-title {
   font-family: var(--font-display);

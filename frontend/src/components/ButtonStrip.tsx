@@ -5,11 +5,16 @@ import { LcarsButton } from '@starfleet-technology/lcars-react'
  */
 export function ButtonStrip() {
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+    <div className="button-strip-container">
+    <div className="button-strip">
       <LcarsButton color="primary">1</LcarsButton>
       <LcarsButton color="primary">2</LcarsButton>
+    </div>
+
+      <div className="button-strip">
       <LcarsButton color="primary">3</LcarsButton>
       <LcarsButton color="primary">4</LcarsButton>
+    </div>
     </div>
   )
 }

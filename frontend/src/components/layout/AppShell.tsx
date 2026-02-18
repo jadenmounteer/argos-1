@@ -12,7 +12,7 @@ export function AppShell() {
   return (
     <MainWrapper titleSlot={<Header />}>
       <div style={{ display: 'flex', gap: '1rem' }}>
-        <aside>
+        <aside className="aside-panel">
           <ButtonStrip />
           <PromptArea />
         </aside>

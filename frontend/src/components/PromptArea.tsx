@@ -3,9 +3,14 @@
  */
 export function PromptArea() {
   return (
-    <div>
-      <label>Prompt area</label>
-      <input type="text" placeholder="Prompt area" aria-label="Prompt area" />
+    <div className="prompt-area">
+      <textarea
+        id="prompt-input"
+        rows={4}
+        placeholder="Prompt area"
+        aria-label="Prompt area"
+        className="prompt-area__input"
+      />
     </div>
   )
 }
