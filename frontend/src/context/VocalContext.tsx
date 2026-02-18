@@ -52,6 +52,7 @@ export function VocalProvider({
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const transcriptAccumulatorRef = useRef("");
+  const lastAddedResultIndexRef = useRef(-1);
   const onCommandReadyRef = useRef(onCommandReady);
   useEffect(() => {
     onCommandReadyRef.current = onCommandReady;
@@ -86,6 +87,7 @@ export function VocalProvider({
     const text = transcriptAccumulatorRef.current.trim();
     if (text) onCommandReadyRef.current(text);
     transcriptAccumulatorRef.current = "";
+    lastAddedResultIndexRef.current = -1;
     setIsActive(false);
   }, []);
 
@@ -96,6 +98,7 @@ export function VocalProvider({
       return;
     }
     transcriptAccumulatorRef.current = "";
+    lastAddedResultIndexRef.current = -1;
     const rec = new SpeechRecognition();
     rec.continuous = true;
     rec.interimResults = true;
@@ -105,22 +108,17 @@ export function VocalProvider({
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current);
       }
-      let newFinal = "";
-      let interim = "";
-      for (let i = event.resultIndex; i < event.results.length; i += 1) {
-        const result = event.results[i]!;
+      const { results } = event;
+      let display = "";
+      for (let i = 0; i < results.length; i += 1) {
+        const result = results[i]!;
         const text = result[0]!.transcript;
-        if (result.isFinal) {
-          newFinal += text;
-        } else {
-          interim = text;
+        display += text;
+        if (result.isFinal && i > lastAddedResultIndexRef.current) {
+          transcriptAccumulatorRef.current += text;
+          lastAddedResultIndexRef.current = i;
         }
       }
-      if (newFinal) {
-        transcriptAccumulatorRef.current += newFinal;
-      }
-      const display =
-        transcriptAccumulatorRef.current + (interim ? ` ${interim}` : "");
       setPromptTextState(display.trim());
       silenceTimerRef.current = setTimeout(finalizeAndRevert, SILENCE_MS);
     };

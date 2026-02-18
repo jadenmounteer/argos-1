@@ -18,10 +18,13 @@ function Consumer() {
   );
 }
 
-function createMockResult(transcript: string): SpeechRecognitionResult {
+function createMockResult(
+  transcript: string,
+  isFinal = true,
+): SpeechRecognitionResult {
   return {
     length: 1,
-    isFinal: true,
+    isFinal,
     item: (i: number) =>
       i === 0
         ? { transcript, confidence: 1 }
@@ -33,7 +36,21 @@ function createMockResult(transcript: string): SpeechRecognitionResult {
 function createMockResultList(
   transcripts: string[],
 ): SpeechRecognitionResultList {
-  const results = transcripts.map(createMockResult);
+  const results = transcripts.map((t) => createMockResult(t));
+  return {
+    length: results.length,
+    item: (i: number) => results[i]!,
+    ...Object.fromEntries(results.map((r, i) => [i, r])),
+  } as unknown as SpeechRecognitionResultList;
+}
+
+/** Build result list from segments with optional isFinal (for cumulative display + no-duplicate accumulator test). */
+function createMockResultListFromItems(
+  items: { transcript: string; isFinal: boolean }[],
+): SpeechRecognitionResultList {
+  const results = items.map(({ transcript, isFinal }) =>
+    createMockResult(transcript, isFinal),
+  );
   return {
     length: results.length,
     item: (i: number) => results[i]!,
@@ -48,6 +65,15 @@ function createMockRecognitionEvent(
   return {
     resultIndex,
     results: createMockResultList(transcripts),
+  } as unknown as SpeechRecognitionEvent;
+}
+
+function createMockRecognitionEventWithItems(
+  items: { transcript: string; isFinal: boolean }[],
+): SpeechRecognitionEvent {
+  return {
+    resultIndex: 0,
+    results: createMockResultListFromItems(items),
   } as unknown as SpeechRecognitionEvent;
 }
 
@@ -209,6 +235,69 @@ describe("VocalProvider", () => {
     });
     expect(onCommandReady).not.toHaveBeenCalled();
   });
+
+  it("shows full transcript as you speak and sends final text once after silence", async () => {
+    const onCommandReady = vi.fn();
+    render(
+      <VocalProvider onCommandReady={onCommandReady}>
+        <VocalTestButtons />
+      </VocalProvider>,
+    );
+    act(() => {
+      fireEvent.click(screen.getAllByTestId("toggle-listening")[0]!);
+    });
+    __setPorcupineMock(true, { label: "argos-one", index: 0 });
+    act(() => {
+      fireEvent.click(screen.getAllByTestId("toggle-listening")[0]!);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    const rec = mockRecognitionInstance;
+    expect(rec).not.toBeNull();
+
+    // Event 1: single interim "hello" -> prompt shows full phrase so far
+    act(() => {
+      rec!.onresult!(
+        createMockRecognitionEventWithItems([
+          { transcript: "hello", isFinal: false },
+        ]),
+      );
+    });
+    expect(screen.getByTestId("prompt-text").textContent).toBe("hello");
+
+    // Event 2: cumulative results - "hello" final, " world" interim -> prompt shows "hello world"
+    act(() => {
+      rec!.onresult!(
+        createMockRecognitionEventWithItems([
+          { transcript: "hello", isFinal: true },
+          { transcript: " world", isFinal: false },
+        ]),
+      );
+    });
+    expect(screen.getByTestId("prompt-text").textContent).toBe("hello world");
+
+    // Event 3: cumulative - "hello", " world" final, " there" final -> full final phrase
+    act(() => {
+      rec!.onresult!(
+        createMockRecognitionEventWithItems([
+          { transcript: "hello", isFinal: true },
+          { transcript: " world", isFinal: true },
+          { transcript: " there", isFinal: true },
+        ]),
+      );
+    });
+    expect(screen.getByTestId("prompt-text").textContent).toBe(
+      "hello world there",
+    );
+
+    // After 1.5s silence: onCommandReady called once with final transcript (no duplication)
+    act(() => {
+      vi.advanceTimersByTime(1500);
+    });
+    expect(onCommandReady).toHaveBeenCalledTimes(1);
+    expect(onCommandReady).toHaveBeenCalledWith("hello world there");
+  });
 });
 
 function VocalTestButtons() {
@@ -216,6 +305,7 @@ function VocalTestButtons() {
   return (
     <>
       <Consumer />
+      <span data-testid="prompt-text">{v.promptText}</span>
       <span data-testid="is-active">{String(v.isActive)}</span>
       <button
         data-testid="toggle-listening"

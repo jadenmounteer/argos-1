@@ -29,7 +29,7 @@ The Main Viewport: A large black central area where the "Tactical Logs" (your SS
   - Pale Violet: `#cc99ff`
 - Create the "Bridge" Layout: A fixed-position frame with the iconic LCARS "Sweep" (the large curved border).
 
-#### [ ] Task 2: The "Ears" (Wake Word & Speech)
+#### [x] Task 2: The "Ears" (Wake Word & Speech)
 
 Goal: Create a VocalProvider that manages the transition from "Always Listening" for the wake word to "Transcribing" the command.
 
