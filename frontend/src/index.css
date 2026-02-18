@@ -59,10 +59,22 @@ body {
 }
 
 /* Button strip: flex wrap, even gutters → 2x2 grid */
+.button-strip-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .button-strip {
   display: flex;
   flex-wrap: wrap;
   gap: var(--lcars-block-gap);
+}
+
+.button-strip-status {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--lcars-color-a9);
 }
 
 /* Prompt area container */

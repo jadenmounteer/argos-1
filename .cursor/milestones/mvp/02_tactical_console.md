@@ -19,7 +19,7 @@ The Main Viewport: A large black central area where the "Tactical Logs" (your SS
 
 ### Tasks
 
-#### [ ] Task 1: LCARS Foundation & Scaffolding
+#### [x] Task 1: LCARS Foundation & Scaffolding
 
 - Initialize React + Vite + TypeScript.
 - Install `@starfleet-technology/lcars-react` and Tailwind CSS.
@@ -31,10 +31,61 @@ The Main Viewport: A large black central area where the "Tactical Logs" (your SS
 
 #### [ ] Task 2: The "Ears" (Wake Word & Speech)
 
-- **Implement `use-ear` Hook:** Create a `VocalProvider` that listens for the specific keyword "ARGOS" or "ARGOS-1".
-- **Logic Switch:** - **Passive:** Listening only for the Wake phrase: "ARGOS One".
-  - **Active:** Upon detection, play the LCARS "Chime" (will be implemented in task 6) and begin full transcription into the prompt area.
-- **Auto-Submit:** Implement a "Silence Detection" timer. If the user stops speaking for 1.5s after the command, automatically trigger the JSON-RPC POST.
+Goal: Create a VocalProvider that manages the transition from "Always Listening" for the wake word to "Transcribing" the command.
+
+1. Core Engine & Initialization
+   Primary Engine: Use @picovoice/porcupine-react.
+
+Config: Initialize usePorcupine using VITE_PICOVOICE_ACCESS_KEY from .env.
+
+Model Path: Load the custom "ARGOS-1" model from public/models/argos-one.ppn (Web WASM version).
+
+Graceful Fallback: If the Access Key is missing or initialization fails, the app shows an unavailable state (no manual mode; wake word only).
+
+2. Logic State Machine
+   Passive Mode: The default state. Listening only for "ARGOS One".
+
+Active Mode: Triggered by Porcupine detection.
+
+Action: Execute an onWakeWordDetected callback.
+
+Action: Start window.SpeechRecognition (or polyfill) with continuous: true and interimResults: true.
+
+Action: Fill the UI prompt area in real-time as the user speaks.
+
+Inhibition Mode (The Gatekeeper):
+
+State: A boolean isInhibited (to be controlled by Task 6).
+
+Behavior: While true, ignore all speech results and Porcupine detections. Do not stop the engines; simply drop the data to prevent the AI from hearing itself or the system chimes.
+
+3. Silence Detection & Dispatch
+   Timer: Implement a 1.5s silence detection.
+
+Callback Execution: When silence is reached:
+
+Finalize the transcript.
+
+Call onCommandReady(transcript).
+
+Revert to Passive Mode.
+
+Note: Do not strip "Argos One" from the transcript (the Kernel will handle persona parsing).
+
+4. UI Integration
+   The Toggle: Map a button in the Tactical Console to toggle "Listening Mode" (Global Ears On/Off).
+
+Visuals: \* Mode ON: Display 🎙️ icon.
+
+Mode OFF: Display 🔕 icon.
+
+The Frame: Set echoCancellation: true in getUserMedia constraints to optimize for open-speaker environments.
+
+5. Technical Contract (For Task 6 Compatibility)
+   Export a triggerChime() stub and an inhibit(boolean) function. This allows Task 6 to plug in the actual LCARS sounds and "Mute" logic later without refactoring the transcription flow.
+
+Developer Note for Cursor
+"Keep the VocalProvider decoupled. It should only emit the final string via onCommandReady. Use the Gatekeeper pattern for inhibition: if (isInhibited) return; inside your speech result handlers. Ensure the getUserMedia constraints are passed to the WebVoiceProcessor used by Picovoice."
 
 #### [ ] Task 3: JSON-RPC over SSE Bridge
 

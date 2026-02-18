@@ -17,7 +17,8 @@ export function useIntelligenceStream() {
 
   return {
     chunks,
-    sendCommand: (_text: string) => {
+    sendCommand: (text: string) => {
+      void text
       // no-op for now
     },
     isStreaming: false,

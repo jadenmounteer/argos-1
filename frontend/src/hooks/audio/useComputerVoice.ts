@@ -4,7 +4,9 @@
  */
 export function useComputerVoice() {
   return {
-    speak: (_text: string) => {},
+    speak: (text: string) => {
+      void text
+    },
     cancel: () => {},
     isSpeaking: false,
   }
