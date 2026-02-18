@@ -20,11 +20,11 @@ Create a responsive "Frame" layout with a sidebar for "Ship Status" and a main v
 
 #### [ ] Task 2: Web Speech Integration (The Ears)
 
-Implement a useArgosVoice hook utilizing the window.SpeechRecognition (or webkitSpeechRecognition) API.
-
-Add logic for Wake Word Detection (listening specifically for "Argos" or "Computer").
+Build a Standalone Vocal Provider: Create a React Context or Redux slice that acts as a 'Vocal Service.' It should be able to run independently of the Tactical UI, emitting standardized text events to the Kernel.
 
 Create a visual "Listening" indicator that pulses when the microphone is active.
+
+Build the speech recognition as a standalone React Hook/Provider that follows the Adapter pattern, keeping it decoupled from the Main Terminal component.
 
 #### [ ] Task 3: Real-Time Stream Consumer (The Data Link)
 

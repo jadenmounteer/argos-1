@@ -15,6 +15,8 @@ Implement the window.speechSynthesis API within the React Tactical Console.
 
 Create a useArgosSpeaker hook to manage the queue of messages to be spoken.
 
+Implement the Auditory Feedback Gateway: Treat the speaker as a 'Secondary Display' that subscribes to the Kernel's output stream, separate from the visual log.
+
 Senior Note: Ensure that if a new command is issued while ARGOS is speaking, the current speech is cancelled (speechSynthesis.cancel()) to maintain responsiveness.
 
 [ ] Task 2: Personality & Voice Selection
