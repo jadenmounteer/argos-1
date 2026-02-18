@@ -1,23 +1,25 @@
-import { useState } from 'react'
-import { LcarsFrame } from '../lcars/LcarsFrame'
-import { LeftSidebar } from '../lcars/LeftSidebar'
-import { MainViewport } from '../lcars/MainViewport'
-import { StatusBar } from '../lcars/StatusBar'
+import { MainWrapper } from '../MainWrapper'
+import { Header } from '../Header'
+import { ButtonStrip } from '../ButtonStrip'
+import { PromptArea } from '../PromptArea'
+import { LogsView } from '../LogsView'
 
+/**
+ * Root layout: main wrapper (frame with title break), then two columns —
+ * left: buttons + prompt, right: logs and responses.
+ */
 export function AppShell() {
-  const [voiceEnabled, setVoiceEnabled] = useState(false)
-
   return (
-    <LcarsFrame
-      sidebar={
-        <LeftSidebar
-          voiceEnabled={voiceEnabled}
-          onToggleVoice={() => setVoiceEnabled((prev) => !prev)}
-        />
-      }
-      main={<MainViewport />}
-      status={<StatusBar />}
-    />
+    <MainWrapper titleSlot={<Header />}>
+      <div style={{ display: 'flex', gap: '1rem' }}>
+        <aside>
+          <ButtonStrip />
+          <PromptArea />
+        </aside>
+        <main>
+          <LogsView />
+        </main>
+      </div>
+    </MainWrapper>
   )
 }
-

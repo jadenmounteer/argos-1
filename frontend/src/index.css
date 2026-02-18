@@ -19,6 +19,8 @@
   --lcars-color-a7: #9c698a;
   --lcars-color-a8: #b6a5d1;
   --lcars-color-a9: #8b72aa;
+  --main-wrapper-bar: 12px;
+  --page-inset: 1.5rem;
 }
 
 body {
@@ -30,12 +32,76 @@ body {
 
 #root {
   min-height: 100vh;
+  box-sizing: border-box;
+  padding-top: var(--page-inset);
+  padding-bottom: var(--page-inset);
+  padding-left: var(--page-inset);
+  padding-right: var(--page-inset);
 }
 
-/* Let LCARS buttons in status bar and viewport headers size to content */
+/* Let LCARS buttons viewport headers size to content */
 .argos-status-bar lcars-button,
 .argos-viewport-header lcars-button {
   --button-width: auto;
   min-width: 80px;
+}
+
+/* Main wrapper: frame around page with break for title */
+.main-wrapper {
+  position: relative;
+  min-height: calc(100vh - 2 * var(--page-inset));
+  padding-right: var(--main-wrapper-bar);
+  padding-bottom: var(--main-wrapper-bar);
+}
+
+.main-wrapper__top {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+}
+
+.main-wrapper__sweep-left {
+  width: 2rem;
+  flex-shrink: 0;
+  border-radius: 0 1rem 0 0;
+  background: var(--lcars-color-a8);
+}
+
+.main-wrapper__title-slot {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.main-wrapper__sweep-right {
+  flex: 1;
+  min-width: 0;
+  border-radius: 1rem 0 0 0;
+  background: var(--lcars-color-a8);
+}
+
+.main-wrapper__body {
+  padding: 0 1rem 1rem;
+}
+
+.main-wrapper__right-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--main-wrapper-bar);
+  border-radius: 1rem 0 1rem 0;
+  background: var(--lcars-color-a8);
+}
+
+.main-wrapper__bottom-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: var(--main-wrapper-bar);
+  height: var(--main-wrapper-bar);
+  border-radius: 1rem 0 0 0;
+  background: var(--lcars-color-a8);
 }
 
