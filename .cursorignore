@@ -16,5 +16,5 @@ application-local.properties
 # OPTIONAL: Ignore large documentation if it slows down indexing
 # docs/archive/
 
-# DO NOT IGNORE .sentinel/directives/ 
+# DO NOT IGNORE .argos/directives/ 
 # Cursor needs these to stay grounded in your rules!

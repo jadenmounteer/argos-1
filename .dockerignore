@@ -14,7 +14,7 @@ dist/
 
 # Documentation and Notes
 *.md
-.sentinel/directives/
+.argos/directives/
 # Note: You might want to copy directives into the image if the
 # Agent needs to read them inside the container.
 
