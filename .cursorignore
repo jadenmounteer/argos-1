@@ -1,0 +1,20 @@
+# Prevents Cursor from wasting tokens on dependencies
+node_modules/
+target/
+dist/
+build/
+
+# Ignore local environment configs
+.env
+.env.*
+application-local.properties
+
+# Ignore version control and logs
+.git/
+*.log
+
+# OPTIONAL: Ignore large documentation if it slows down indexing
+# docs/archive/
+
+# DO NOT IGNORE .sentinel/directives/ 
+# Cursor needs these to stay grounded in your rules!

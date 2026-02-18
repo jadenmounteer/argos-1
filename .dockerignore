@@ -1,0 +1,30 @@
+# Git
+.git
+.gitignore
+
+# Java Build Artifacts
+target/
+build/
+.mvn/
+
+# Node Build Artifacts
+node_modules/
+npm-debug.log
+dist/
+
+# Documentation and Notes
+*.md
+.sentinel/directives/
+# Note: You might want to copy directives into the image if the
+# Agent needs to read them inside the container.
+
+# Local IDE Configs
+.idea
+.vscode
+.cursorrules
+.cursorignore
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
