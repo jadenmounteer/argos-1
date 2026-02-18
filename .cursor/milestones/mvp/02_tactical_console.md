@@ -47,3 +47,11 @@ Implement an "Auto-scroll" feature so the logs feel like a live readout.
 #### [ ] Task 5: Intent Execution Feedback
 
 Add status "badges" to show the current state of ARGOS-1: IDLE, LISTENING, ANALYZING, BREACH DETECTED.
+
+[ ] Task 6: Containerized Orchestration (Docker Compose)
+Create a docker-compose.yml that links the Spring Boot Hub, the React Console, and Ollama.
+
+Use a Named Volume for Ollama (e.g., ollama_data:/root/.ollama) so models aren't re-downloaded when the container restarts.
+
+Keep Ollama in its own container to demonstrate that the "Brain" is an interchangeable service.
+keep your application.properties set to localhost (the "Developer Default") and use the Uppercase Underscore convention in your docker-compose.yml.

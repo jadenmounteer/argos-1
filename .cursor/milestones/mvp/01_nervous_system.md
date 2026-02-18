@@ -34,11 +34,20 @@ Add dependencies: spring-boot-starter-web, lombok, and langchain4j-ollama-spring
 
 Enable Virtual Threads in application.properties: spring.threads.virtual.enabled=true.
 
-#### [ ] Task 3: Domain-Driven Kernel Design
+#### [x] Task 3: Domain-Driven Kernel Design
 
 Create a KernelController (The Interface) and an IntelligenceService (The Core).
 
 Implement an AgentResponse DTO to handle structured communication between the backend and (future) frontend.
+
+Stick to a port and adapter (hexagonal) flavor of DDD from the start.
+
+Recommended layout:
+com.argos.interface.rest: Put your KernelController here. This is the "Adapter." It only knows about JSON and HTTP.
+
+com.argos.domain.model: Put your IntelligenceService and your ArgosCommand (Value Object) here. This is the "Heart" of the system.
+
+com.argos.domain.ports: Put your IntelligencePort (Interface) here.
 
 #### [ ] Task 4: The "Starfleet" Persona Integration
 
@@ -46,19 +55,28 @@ Configure a SystemPromptProvider that injects the ARGOS-1 personality into every
 
 Implement a "Sanity Check" tool that tests if the LLM correctly identifies itself as ARGOS-1.
 
-#### [ ] Task 5: JSON-RPC Bridge Setup (Foundation for MCP)
+Instead of a standard REST route, implement this as a custom HealthIndicator or a dedicated /actuator/identity endpoint.
 
-Create a basic endpoint /api/v1/command that accepts text input and returns the LLM's "Thought" and "Action" stream.
+#### [ ] Task 5: JSON-RPC over SSE Bridge (Intelligence Gateway)
+
+Endpoint: Implement POST /api/v1/command as the primary entry point for agentic interactions.
+
+Transport Layer: Configure the response as a Server-Sent Events (SSE) stream (text/event-stream) to allow real-time "Thinking" logs.
+
+Protocol Structure: Use a JSON-RPC 2.0-aligned body (id, method, params) to ensure forward compatibility with the MCP (Model Context Protocol).
+
+Event Types: Implement three distinct event types to be consumed by the Tactical Console:
+
+thought: Incremental tokens inside the <thought> block from DeepSeek-R1.
+
+action: Notifications when the agent prepares or executes a tool call.
+
+response: The final synthesized output for the user.
+
+Safety: Implement an idle-timeout and connection-cleanup strategy to prevent memory leaks in the Spring Boot Kernel.
+
+Make sure to place the JSON-RPC bridge in an application layer, not the domain.
 
 #### [ ] Task 6: Include Integration Tests to verify the connection between Spring Boot and the local Ollama API.
 
-[ ] Task 7: Containerized Orchestration (Docker Compose)
-Create a docker-compose.yml that links the Spring Boot Hub, the React Console, and Ollama.
-
-Use a Named Volume for Ollama (e.g., ollama_data:/root/.ollama) so models aren't re-downloaded when the container restarts.
-
-Senior Choice: Keep Ollama in its own container to demonstrate that the "Brain" is an interchangeable service.
-
-```
-
-```
+Use WireMock for your standard integration tests, but structure your code so you can toggle a "Live Smoke Test" profile when you want to verify the real model.
