@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Single source of truth for color: new styles must use these variables (no new hex or Tailwind color definitions for UI).
+ * LCARS palette: same tokens as @starfleet-technology/lcars (button :host).
+ */
+:root {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --lcars-block-gap: 0.5rem;
+  --lcars-color-black: #090909;
+  --lcars-color-a1: #ec943a;
+  --lcars-color-a2: #eb9870;
+  --lcars-color-a3: #c47d69;
+  --lcars-color-a4: #d29a7f;
+  --lcars-color-a5: #faa41b;
+  --lcars-color-a6: #c082a9;
+  --lcars-color-a7: #9c698a;
+  --lcars-color-a8: #b6a5d1;
+  --lcars-color-a9: #8b72aa;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--lcars-color-black);
+  color: var(--lcars-color-a5);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Let LCARS buttons in status bar and viewport headers size to content */
+.argos-status-bar lcars-button,
+.argos-viewport-header lcars-button {
+  --button-width: auto;
+  min-width: 80px;
+}
+
