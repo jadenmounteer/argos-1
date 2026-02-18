@@ -47,13 +47,20 @@ body {
   min-width: 80px;
 }
 
-/* Aside: vertical layout, padding, gap, fixed width for 2x2 button grid */
+/* Two-column layout: aside + logs, with clear gap */
+.app-shell__body {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* Aside: width matches button grid so prompt area aligns; vertical stack */
 .aside-panel {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   padding: 1rem;
-  width: 16rem;
+  width: fit-content;
   min-width: 0;
 }
 
@@ -66,7 +73,6 @@ body {
 
 .button-strip-container {
   display: flex;
-  flex-direction: row;
   gap: 0.5rem;
 }
 
@@ -105,6 +111,29 @@ body {
 .prompt-area__input:focus {
   outline: none;
   box-shadow: 0 0 0 2px var(--lcars-color-a1);
+}
+
+/* Right column: fills remaining space so logs box can be tall */
+.logs-column {
+  flex: 1;
+  min-width: 0;
+  min-height: 20rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Logs box: large read-only text-area style, copyable */
+.logs-view {
+  flex: 1;
+  min-height: 0;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 2px solid var(--lcars-color-a9);
+  background: var(--lcars-color-black);
+  color: var(--lcars-color-a5);
+  font: inherit;
+  overflow: auto;
+  user-select: text;
 }
 
 /* App title in header break: yellow/gold, all caps, LCARS display font */

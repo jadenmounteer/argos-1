@@ -11,12 +11,12 @@ import { LogsView } from '../LogsView'
 export function AppShell() {
   return (
     <MainWrapper titleSlot={<Header />}>
-      <div style={{ display: 'flex', gap: '1rem' }}>
+      <div className="app-shell__body">
         <aside className="aside-panel">
           <ButtonStrip />
           <PromptArea />
         </aside>
-        <main>
+        <main className="logs-column">
           <LogsView />
         </main>
       </div>
