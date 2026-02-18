@@ -49,7 +49,7 @@ com.argos.domain.model: Put your IntelligenceService and your ArgosCommand (Valu
 
 com.argos.domain.ports: Put your IntelligencePort (Interface) here.
 
-#### [ ] Task 4: The "Starfleet" Persona Integration
+#### [x] Task 4: The Argos-1 Persona Integration
 
 Configure a SystemPromptProvider that injects the ARGOS-1 personality into every LLM call.
 
