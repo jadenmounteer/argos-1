@@ -9,6 +9,11 @@ import {
   type ReactNode,
 } from "react";
 import { usePorcupine } from "@picovoice/porcupine-react";
+import {
+  playWakeWordDetected,
+  playComputerOn,
+  playComputerOff,
+} from "../audio/audioBridge";
 
 const SILENCE_MS = 1500;
 const WAKE_KEYWORD_PATH = "/models/argos-one_en_wasm_v4_0_0.ppn";
@@ -54,12 +59,13 @@ export function VocalProvider({
   const transcriptAccumulatorRef = useRef("");
   const lastAddedResultIndexRef = useRef(-1);
   const onCommandReadyRef = useRef(onCommandReady);
+  const prevListeningModeRef = useRef<boolean | undefined>(undefined);
   useEffect(() => {
     onCommandReadyRef.current = onCommandReady;
   }, [onCommandReady]);
 
   const triggerChime = useCallback(() => {
-    // Stub for Task 6
+    playWakeWordDetected();
   }, []);
 
   const inhibit = useCallback((value: boolean) => {
@@ -234,6 +240,18 @@ export function VocalProvider({
       porcupineStop?.();
     }
   }, [listeningMode, porcupineLoaded, isActive, porcupineStart, porcupineStop]);
+
+  // Channel 3 (Persona): COMPUTER_ON / COMPUTER_OFF when listening mode toggles
+  useEffect(() => {
+    if (prevListeningModeRef.current !== undefined) {
+      if (listeningMode) {
+        playComputerOn();
+      } else {
+        playComputerOff();
+      }
+    }
+    prevListeningModeRef.current = listeningMode;
+  }, [listeningMode]);
 
   const wakeWordUnavailableReason: string | null =
     listeningMode && !porcupineLoaded

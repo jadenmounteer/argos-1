@@ -3,6 +3,7 @@
  * Task 3 Phase 1+2: POST to /api/v1/command, consume SSE stream, parse event/data and route to thoughtLog/mainResponse.
  */
 import { useCallback, useRef, useState } from "react";
+import { playCommandSubmitted, playStreamError } from "../audio/audioBridge";
 
 export type StreamChunkType = "thought" | "response";
 
@@ -57,6 +58,7 @@ export function useIntelligenceStream(options: UseIntelligenceStreamOptions = {}
       const baseUrl = getKernelBaseUrl();
       if (!baseUrl) {
         setStreamError("VITE_KERNEL_URL is not set");
+        playStreamError();
         return;
       }
       setStreamError(null);
@@ -64,6 +66,7 @@ export function useIntelligenceStream(options: UseIntelligenceStreamOptions = {}
       setThoughtLog("");
       setMainResponse("");
       sentenceBufferRef.current = "";
+      playCommandSubmitted();
 
       const url = `${baseUrl}/api/v1/command`;
       const body = JSON.stringify({
@@ -84,6 +87,7 @@ export function useIntelligenceStream(options: UseIntelligenceStreamOptions = {}
           setStreamError(
             `Request failed: ${response.status} ${response.statusText}`,
           );
+          playStreamError();
           setIsStreaming(false);
           return;
         }
@@ -91,6 +95,7 @@ export function useIntelligenceStream(options: UseIntelligenceStreamOptions = {}
         const reader = response.body?.getReader();
         if (!reader) {
           setStreamError("Response has no body");
+          playStreamError();
           setIsStreaming(false);
           return;
         }
@@ -153,6 +158,7 @@ export function useIntelligenceStream(options: UseIntelligenceStreamOptions = {}
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         setStreamError(message);
+        playStreamError();
       } finally {
         setIsStreaming(false);
       }

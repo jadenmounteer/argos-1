@@ -154,13 +154,13 @@ Channel 3 (Persona): The COMPUTER_ON and COMPUTER_OFF cues that trigger when the
 
 State-Linked Triggers: Link audio events to your application state:
 
-WAKE_WORD_DETECTED ➔ Play Input_Acknowledged_Chirp.
+WAKE_WORD_DETECTED ➔ dictation-enabled.mp3
 
-SUBMIT_COMMAND ➔ Play Enter_Action_Beep.
+SUBMIT_COMMAND ➔ Play input-sent-to-api.mp3
 
-STREAM_ERROR ➔ Play System_Failure_Tone.
+STREAM_ERROR ➔ Play input-failed.mp3
 
-I have audio sounds I'll add to the assets directory soon.
+The above audio files can be found in the assets folder.
 
 #### [ ] Task 7: The "Voice" (Text-to-Speech Synthesis) (This actually is covered in another milestone)
 
