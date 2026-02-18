@@ -11,19 +11,21 @@ import { LogsView } from '../LogsView'
 export function AppShell({
   thoughtLog = '',
   mainResponse = '',
+  isStreaming = false,
 }: {
   thoughtLog?: string
   mainResponse?: string
+  isStreaming?: boolean
 }) {
   return (
-    <MainWrapper titleSlot={<Header />}>
+    <MainWrapper titleSlot={<Header />} loading={isStreaming}>
       <div className="app-shell__body">
         <aside className="aside-panel">
           <ButtonStrip />
           <PromptArea />
         </aside>
         <main className="logs-column">
-          <LogsView thoughtLog={thoughtLog} mainResponse={mainResponse} />
+          <LogsView thoughtLog={thoughtLog} mainResponse={mainResponse} isStreaming={isStreaming} />
         </main>
       </div>
     </MainWrapper>

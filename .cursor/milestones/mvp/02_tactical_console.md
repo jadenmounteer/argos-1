@@ -87,7 +87,7 @@ The Frame: Set echoCancellation: true in getUserMedia constraints to optimize fo
 Developer Note for Cursor
 "Keep the VocalProvider decoupled. It should only emit the final string via onCommandReady. Use the Gatekeeper pattern for inhibition: if (isInhibited) return; inside your speech result handlers. Ensure the getUserMedia constraints are passed to the WebVoiceProcessor used by Picovoice."
 
-#### [ ] Task 3: JSON-RPC over SSE Bridge
+#### [x] Task 3: JSON-RPC over SSE Bridge
 
 Goal: Implement useIntelligenceStream to connect the LCARS UI to the ARGOS-1 Kernel using a JSON-RPC over Fetch-based SSE stream.
 
@@ -108,7 +108,7 @@ Payload Structure: ```json
 
 Stream Initialization: Use ReadableStream and TextDecoder("utf-8") to process the response body incrementally.
 
-Phase 2: Named Event Parsing & State Routing
+Phase 2: Named Event Parsing & State Routing ✅
 The Kernel sends Named Events. Do not just parse raw data; you must route based on the event: line.
 
 Logic:
@@ -131,24 +131,10 @@ Monitor mainResponse. Use the heuristic Regex /[.!?](\s+|$)/ to detect full sent
 
 Action: Call onResponseSentence(sentence) as soon as a match is found. "Flush" any remaining text when the stream closes.
 
-Phase 3: Resilience, Timeout, and UI
-The 5s "First Content" Timeout:
+Phase 3: Loading state✅
+Emit a thought event immediately to let the user know it's working.
 
-Start a timer when the POST is sent.
-
-Clear timer ONLY when the first valid thought or response event is successfully parsed.
-
-On failure: Set an error state ("COMMUNICATION BREAKDOWN") to trigger Task 6 alarms.
-
-Abort & Control:
-
-Implement AbortController.
-
-UI Requirement: Add a "STOP" button (LCARS style) in the bottom-right of the log area that triggers abort().
-
-Tactical Auto-Scroll:
-
-The TacticalLog must use a useEffect or useRef to stay pinned to the bottom as new thoughtLog or mainResponse tokens arrive.
+Have the main wrapper bars pulse to portray loading state.
 
 #### [ ] Task 5: Containerized Orchestration
 

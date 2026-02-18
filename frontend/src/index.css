@@ -218,3 +218,21 @@ body {
   background: var(--lcars-color-a8);
 }
 
+/* Loading state: pulse bars (opacity) */
+@keyframes pulse {
+  from,
+  to {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.main-wrapper--loading .main-wrapper__sweep-left,
+.main-wrapper--loading .main-wrapper__sweep-right,
+.main-wrapper--loading .main-wrapper__right-bar,
+.main-wrapper--loading .main-wrapper__bottom-bar {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
