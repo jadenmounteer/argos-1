@@ -109,12 +109,23 @@ export function VocalProvider({
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current);
       }
-      let transcript = "";
+      let newFinal = "";
+      let interim = "";
       for (let i = event.resultIndex; i < event.results.length; i += 1) {
-        transcript += event.results[i]![0]!.transcript;
+        const result = event.results[i]!;
+        const text = result[0]!.transcript;
+        if (result.isFinal) {
+          newFinal += text;
+        } else {
+          interim = text;
+        }
       }
-      transcriptAccumulatorRef.current += transcript;
-      setPromptTextState(transcriptAccumulatorRef.current);
+      if (newFinal) {
+        transcriptAccumulatorRef.current += newFinal;
+      }
+      const display =
+        transcriptAccumulatorRef.current + (interim ? ` ${interim}` : "");
+      setPromptTextState(display.trim());
       silenceTimerRef.current = setTimeout(finalizeAndRevert, SILENCE_MS);
     };
     rec.onerror = (event?: Event) => {
