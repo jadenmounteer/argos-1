@@ -20,6 +20,8 @@
   --lcars-color-a7: #9c698a;
   --lcars-color-a8: #b6a5d1;
   --lcars-color-a9: #8b72aa;
+  --lcars-color-science-teal: #008080;
+  --lcars-color-command-gold: #ffd700;
   --main-wrapper-bar: 12px;
   --page-inset: 1.5rem;
 }
@@ -124,10 +126,27 @@ body {
   border-radius: 0.75rem;
   border: 2px solid var(--lcars-color-a9);
   background: var(--lcars-color-black);
-  color: var(--lcars-color-a5);
   font: inherit;
   overflow: auto;
   user-select: text;
+}
+
+/* Thoughts: Science Teal, italicized, lower opacity (diagnostics) */
+.logs-view__thought-text {
+  color: var(--lcars-color-science-teal);
+  font-style: italic;
+  opacity: 0.9;
+  margin: 0 0 0.75rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Response: Command Gold, high contrast */
+.logs-view__response-text {
+  color: var(--lcars-color-command-gold);
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 /* App title in header break: yellow/gold, all caps, LCARS display font */

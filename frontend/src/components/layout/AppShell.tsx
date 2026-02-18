@@ -8,7 +8,13 @@ import { LogsView } from '../LogsView'
  * Root layout: main wrapper (frame with title break), then two columns —
  * left: buttons + prompt, right: logs and responses.
  */
-export function AppShell() {
+export function AppShell({
+  thoughtLog = '',
+  mainResponse = '',
+}: {
+  thoughtLog?: string
+  mainResponse?: string
+}) {
   return (
     <MainWrapper titleSlot={<Header />}>
       <div className="app-shell__body">
@@ -17,7 +23,7 @@ export function AppShell() {
           <PromptArea />
         </aside>
         <main className="logs-column">
-          <LogsView />
+          <LogsView thoughtLog={thoughtLog} mainResponse={mainResponse} />
         </main>
       </div>
     </MainWrapper>
