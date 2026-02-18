@@ -12,10 +12,7 @@ import { usePorcupine } from "@picovoice/porcupine-react";
 
 const SILENCE_MS = 1500;
 const WAKE_KEYWORD_PATH = "/models/argos-one_en_wasm_v4_0_0.ppn";
-// Adding ?v=2 forces the browser to treat it as a new file request
-const PORCUPINE_MODEL_PATH = "/models/porcupine_params.pv?v=2";
-
-type SpeechRecognitionInstance = SpeechRecognition;
+const PORCUPINE_MODEL_PATH = "/models/porcupine_params.pv";
 
 export type VocalContextValue = {
   listeningMode: boolean;
@@ -24,7 +21,6 @@ export type VocalContextValue = {
   promptText: string;
   setPromptText: (value: string) => void;
   porcupineLoaded: boolean;
-  porcupineError: Error | null;
   /** When listening is on but wake word isn't ready: reason to show in UI (e.g. missing key). */
   wakeWordUnavailableReason: string | null;
   triggerChime: () => void;
@@ -54,7 +50,7 @@ export function VocalProvider({
   const [promptText, setPromptTextState] = useState("");
   const isInhibitedRef = useRef(false);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const transcriptAccumulatorRef = useRef("");
   const onCommandReadyRef = useRef(onCommandReady);
   useEffect(() => {
@@ -100,7 +96,7 @@ export function VocalProvider({
       return;
     }
     transcriptAccumulatorRef.current = "";
-    const rec = new SpeechRecognition() as SpeechRecognitionInstance;
+    const rec = new SpeechRecognition();
     rec.continuous = true;
     rec.interimResults = true;
     rec.lang = "en-US";
@@ -257,7 +253,6 @@ export function VocalProvider({
     promptText,
     setPromptText,
     porcupineLoaded: porcupineLoaded ?? false,
-    porcupineError: porcupineError ?? null,
     wakeWordUnavailableReason,
     triggerChime,
     inhibit,
