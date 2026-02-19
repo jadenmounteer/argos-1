@@ -12,16 +12,20 @@ export function AppShell({
   thoughtLog = '',
   mainResponse = '',
   isStreaming = false,
+  speakingOn = false,
+  setSpeakingOn,
 }: {
   thoughtLog?: string
   mainResponse?: string
   isStreaming?: boolean
+  speakingOn?: boolean
+  setSpeakingOn?: (value: boolean) => void
 }) {
   return (
     <MainWrapper titleSlot={<Header />} loading={isStreaming}>
       <div className="app-shell__body">
         <aside className="aside-panel">
-          <ButtonStrip />
+          <ButtonStrip speakingOn={speakingOn} setSpeakingOn={setSpeakingOn ?? (() => {})} />
           <PromptArea />
         </aside>
         <main className="logs-column">

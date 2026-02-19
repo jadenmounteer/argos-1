@@ -79,7 +79,18 @@ function schedulePcmChunk(
 
 let hasWarnedNoApiKey = false;
 
+export type UseComputerVoiceOptions = {
+  speakingOn: boolean;
+  setSpeakingOn: (value: boolean) => void;
+};
+
+export function useComputerVoiceOptions(): UseComputerVoiceOptions {
+  const [speakingOn, setSpeakingOn] = useState(false);
+  return { speakingOn, setSpeakingOn };
+}
+
 export function useComputerVoice() {
+  const [speakingOn, setSpeakingOn] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const voiceIdPromiseRef = useRef<Promise<string | null> | null>(null);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -90,7 +101,9 @@ export function useComputerVoice() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
   const nextStartTimeRef = useRef(0);
-  const streamEndTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const streamEndTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const sentenceQueueRef = useRef<string[]>([]);
   const isPlayingFromQueueRef = useRef(false);
 
@@ -135,6 +148,9 @@ export function useComputerVoice() {
   const speak = useCallback(
     async (text: string) => {
       if (typeof window === "undefined") return;
+      if (!speakingOn) {
+        return;
+      }
       const apiKey = getElevenLabsApiKey();
       if (!apiKey) {
         if (!hasWarnedNoApiKey) {
@@ -313,6 +329,7 @@ export function useComputerVoice() {
   const speakSentence = useCallback(
     (sentence: string) => {
       if (typeof window === "undefined") return;
+      if (!speakingOn) return;
       const apiKey = getElevenLabsApiKey();
       if (!apiKey) return;
       const t = sentence.trim();
@@ -323,122 +340,125 @@ export function useComputerVoice() {
         playNextFromQueue();
       }
     },
-    [playNextFromQueue],
+    [speakingOn, playNextFromQueue],
   );
 
-  const speakChunk = useCallback(
-    (segment: string) => {
-      if (typeof window === "undefined") return;
-      const apiKey = getElevenLabsApiKey();
-      if (!apiKey) return;
-      const text = segment.trim();
-      if (!text) return;
+  const speakChunk = useCallback((segment: string) => {
+    if (typeof window === "undefined") return;
+    const apiKey = getElevenLabsApiKey();
+    if (!apiKey) return;
+    const text = segment.trim();
+    if (!text) return;
 
-      const ensureStreamOpen = (): Promise<void> => {
-        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          return Promise.resolve();
+    const ensureStreamOpen = (): Promise<void> => {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        return Promise.resolve();
+      }
+      if (streamOpenPromiseRef.current) {
+        return streamOpenPromiseRef.current;
+      }
+      const openPromise = (async () => {
+        if (!voiceIdPromiseRef.current) {
+          voiceIdPromiseRef.current = resolveVoiceId(apiKey);
         }
-        if (streamOpenPromiseRef.current) {
-          return streamOpenPromiseRef.current;
-        }
-        const openPromise = (async () => {
-          if (!voiceIdPromiseRef.current) {
-            voiceIdPromiseRef.current = resolveVoiceId(apiKey);
-          }
-          const voiceId = await voiceIdPromiseRef.current;
-          if (!voiceId) return;
-          if (wsRef.current?.readyState === WebSocket.OPEN) return;
+        const voiceId = await voiceIdPromiseRef.current;
+        if (!voiceId) return;
+        if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
-          const ctx = new AudioContext();
-          const gainNode = ctx.createGain();
-          gainNode.gain.value = TTS_VOLUME;
-          gainNode.connect(ctx.destination);
-          audioContextRef.current = ctx;
-          gainNodeRef.current = gainNode;
-          nextStartTimeRef.current = ctx.currentTime;
+        const ctx = new AudioContext();
+        const gainNode = ctx.createGain();
+        gainNode.gain.value = TTS_VOLUME;
+        gainNode.connect(ctx.destination);
+        audioContextRef.current = ctx;
+        gainNodeRef.current = gainNode;
+        nextStartTimeRef.current = ctx.currentTime;
 
-          const wsUrl = `wss://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream-input?model_id=${STREAM_MODEL_ID}&output_format=${STREAM_OUTPUT_FORMAT}`;
-          const ws = new WebSocket(wsUrl);
-          wsRef.current = ws;
+        const wsUrl = `wss://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream-input?model_id=${STREAM_MODEL_ID}&output_format=${STREAM_OUTPUT_FORMAT}`;
+        const ws = new WebSocket(wsUrl);
+        wsRef.current = ws;
 
-          await new Promise<void>((resolve, reject) => {
-            ws.onopen = () => {
-              ws.send(
-                JSON.stringify({
-                  text: " ",
-                  xi_api_key: apiKey,
-                  voice_settings: { stability: 0.6, similarity_boost: 0.8 },
-                }),
+        await new Promise<void>((resolve, reject) => {
+          ws.onopen = () => {
+            ws.send(
+              JSON.stringify({
+                text: " ",
+                xi_api_key: apiKey,
+                voice_settings: { stability: 0.6, similarity_boost: 0.8 },
+              }),
+            );
+            setIsSpeaking(true);
+            resolve();
+          };
+          ws.onerror = () => reject(new Error("WebSocket error"));
+        });
+
+        ws.onmessage = async (event) => {
+          const ctx = audioContextRef.current;
+          const gainNode = gainNodeRef.current;
+          if (!ctx || !gainNode) return;
+          try {
+            if (ctx.state === "suspended") await ctx.resume();
+            const msg = JSON.parse(event.data as string) as StreamAudioMessage;
+            if (msg.audio) {
+              nextStartTimeRef.current = schedulePcmChunk(
+                ctx,
+                gainNode,
+                msg.audio,
+                nextStartTimeRef.current,
               );
-              setIsSpeaking(true);
-              resolve();
-            };
-            ws.onerror = () => reject(new Error("WebSocket error"));
-          });
-
-          ws.onmessage = async (event) => {
-            const ctx = audioContextRef.current;
-            const gainNode = gainNodeRef.current;
-            if (!ctx || !gainNode) return;
-            try {
-              if (ctx.state === "suspended") await ctx.resume();
-              const msg = JSON.parse(event.data as string) as StreamAudioMessage;
-              if (msg.audio) {
-                nextStartTimeRef.current = schedulePcmChunk(
-                  ctx,
-                  gainNode,
-                  msg.audio,
-                  nextStartTimeRef.current,
-                );
-              }
-              if (msg.isFinal) {
-                streamEndTimeoutRef.current = setTimeout(() => {
+            }
+            if (msg.isFinal) {
+              streamEndTimeoutRef.current = setTimeout(
+                () => {
                   setIsSpeaking(false);
                   streamEndTimeoutRef.current = null;
-                }, Math.max(0, (nextStartTimeRef.current - ctx.currentTime) * 1000));
-                try {
-                  ws.close();
-                } catch {
-                  // ignore
-                }
-                wsRef.current = null;
-                streamOpenPromiseRef.current = null;
+                },
+                Math.max(
+                  0,
+                  (nextStartTimeRef.current - ctx.currentTime) * 1000,
+                ),
+              );
+              try {
+                ws.close();
+              } catch {
+                // ignore
               }
-            } catch {
-              // ignore parse error
+              wsRef.current = null;
+              streamOpenPromiseRef.current = null;
             }
-          };
+          } catch {
+            // ignore parse error
+          }
+        };
 
-          ws.onerror = () => {
-            setIsSpeaking(false);
-            wsRef.current = null;
-            streamOpenPromiseRef.current = null;
-          };
+        ws.onerror = () => {
+          setIsSpeaking(false);
+          wsRef.current = null;
+          streamOpenPromiseRef.current = null;
+        };
 
-          ws.onclose = () => {
-            wsRef.current = null;
-            streamOpenPromiseRef.current = null;
-          };
-        })();
-        streamOpenPromiseRef.current = openPromise;
-        return openPromise;
-      };
+        ws.onclose = () => {
+          wsRef.current = null;
+          streamOpenPromiseRef.current = null;
+        };
+      })();
+      streamOpenPromiseRef.current = openPromise;
+      return openPromise;
+    };
 
-      const sendSegment = (s: string) => {
-        const ws = wsRef.current;
-        if (!ws || ws.readyState !== WebSocket.OPEN) return;
-        const toSend = s.endsWith(" ") ? s : `${s} `;
-        ws.send(JSON.stringify({ text: toSend }));
-      };
+    const sendSegment = (s: string) => {
+      const ws = wsRef.current;
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+      const toSend = s.endsWith(" ") ? s : `${s} `;
+      ws.send(JSON.stringify({ text: toSend }));
+    };
 
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        sendSegment(text);
-      } else {
-        void ensureStreamOpen().then(() => sendSegment(text));
-      }
-    },
-    [],
-  );
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      sendSegment(text);
+    } else {
+      void ensureStreamOpen().then(() => sendSegment(text));
+    }
+  }, []);
 
   const endStream = useCallback(
     (fullText?: string) => {
@@ -452,5 +472,14 @@ export function useComputerVoice() {
     [speak],
   );
 
-  return { speak, speakSentence, cancel, speakChunk, endStream, isSpeaking };
+  return {
+    speak,
+    speakSentence,
+    cancel,
+    speakChunk,
+    endStream,
+    isSpeaking,
+    speakingOn,
+    setSpeakingOn,
+  };
 }

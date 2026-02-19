@@ -5,7 +5,7 @@ import { useIntelligenceStream } from './hooks/useIntelligenceStream'
 import { AppShell } from './components/layout/AppShell'
 
 function AppWithVocal() {
-  const { speakSentence, cancel, isSpeaking } = useComputerVoice()
+  const { speakSentence, cancel, isSpeaking, speakingOn, setSpeakingOn } = useComputerVoice()
   const {
     sendCommand: streamSendCommand,
     thoughtLog,
@@ -23,7 +23,13 @@ function AppWithVocal() {
   )
   return (
     <VocalProvider onCommandReady={sendCommand} inhibitWhileSpeaking={isSpeaking}>
-      <AppShell thoughtLog={thoughtLog} mainResponse={mainResponse} isStreaming={isStreaming} />
+      <AppShell
+        thoughtLog={thoughtLog}
+        mainResponse={mainResponse}
+        isStreaming={isStreaming}
+        speakingOn={speakingOn}
+        setSpeakingOn={setSpeakingOn}
+      />
     </VocalProvider>
   )
 }

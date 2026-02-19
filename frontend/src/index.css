@@ -79,6 +79,18 @@ body {
   color: var(--lcars-color-a9);
 }
 
+.setting-button {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background-color: var(--lcars-color-a9);
+  color: var(--lcars-color-black);
+  font-size: 1rem;
+  text-align: center;
+  line-height: 2rem;
+  cursor: pointer;
+}
+
 /* Prompt area container */
 .prompt-area {
   width: 100%;
