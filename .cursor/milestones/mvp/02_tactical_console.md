@@ -138,9 +138,12 @@ Have the main wrapper bars pulse to portray loading state.
 
 #### [ ] Task 5: Containerized Orchestration
 
-- Update `docker-compose.yml` to include the `argos-console` (React) service.
+- Create docker-compose.yml. Have it spin up the frontend (react) and backend (java spring boot).
 - **Networking:** Ensure the React frontend can resolve the `argos-kernel` service in the Docker network.
 - **Environment:** Pass `VITE_KERNEL_URL=http://argos-kernel:8080` to the build process.
+- Model Service: Spin up an ollama container.
+- Model Hydration: Add a "Sidecar" or a healthcheck script that automatically runs ollama pull deepseek-r1:8b when the container starts.
+- Create a named volume (e.g., ollama_data) to persist the model files on your host machine.
 
 #### [x] Task 6: Tactical Audio Engine
 
@@ -162,7 +165,7 @@ STREAM_ERROR ➔ Play input-failed.mp3
 
 The above audio files can be found in the assets folder.
 
-#### [ ] Task 7: The "Voice" (Text-to-Speech Synthesis) (This actually is covered in another milestone)
+#### [x] Task 7: The "Voice" (Text-to-Speech Synthesis) (This actually is covered in another milestone)
 
 - **Implementation:** Integrate the `window.speechSynthesis` API or a "Majel-cloned" ElevenLabs/Together.ai endpoint.
 - **Voice Selection:** - **Option A (Local):** Filter `window.speechSynthesis.getVoices()` for the "Google UK English Female" or "Microsoft Zira" voice (the closest native matches to the TNG computer's cadence).
