@@ -1,4 +1,3 @@
-import { LcarsButton } from "@starfleet-technology/lcars-react";
 import { useVocal } from "../context/VocalContext";
 /**
  * Four buttons in a strip (2x2). First button toggles Listening Mode (wake word only).

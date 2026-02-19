@@ -1,11 +1,12 @@
-import { useCallback } from 'react'
-import { VocalProvider } from './context/VocalContext'
-import { useComputerVoice } from './hooks/audio/useComputerVoice'
-import { useIntelligenceStream } from './hooks/useIntelligenceStream'
-import { AppShell } from './components/layout/AppShell'
+import { useCallback } from "react";
+import { VocalProvider } from "./context/VocalContext";
+import { useComputerVoice } from "./hooks/audio/useComputerVoice";
+import { useIntelligenceStream } from "./hooks/useIntelligenceStream";
+import { AppShell } from "./components/layout/AppShell";
 
 function AppWithVocal() {
-  const { speakSentence, cancel, isSpeaking, speakingOn, setSpeakingOn } = useComputerVoice()
+  const { speakSentence, cancel, isSpeaking, speakingOn, setSpeakingOn } =
+    useComputerVoice();
   const {
     sendCommand: streamSendCommand,
     thoughtLog,
@@ -13,17 +14,21 @@ function AppWithVocal() {
     isStreaming,
   } = useIntelligenceStream({
     onResponseSentence: (sentence) => speakSentence(sentence),
-  })
+  });
   const sendCommand = useCallback(
     (text: string) => {
-      cancel()
-      streamSendCommand(text)
+      cancel();
+      streamSendCommand(text);
     },
     [cancel, streamSendCommand],
-  )
+  );
   return (
-    <VocalProvider onCommandReady={sendCommand} inhibitWhileSpeaking={isSpeaking}>
+    <VocalProvider
+      onCommandReady={sendCommand}
+      inhibitWhileSpeaking={isSpeaking}
+    >
       <AppShell
+        sendCommand={sendCommand}
         thoughtLog={thoughtLog}
         mainResponse={mainResponse}
         isStreaming={isStreaming}
@@ -31,9 +36,9 @@ function AppWithVocal() {
         setSpeakingOn={setSpeakingOn}
       />
     </VocalProvider>
-  )
+  );
 }
 
 export default function App() {
-  return <AppWithVocal />
+  return <AppWithVocal />;
 }
