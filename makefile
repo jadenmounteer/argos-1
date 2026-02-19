@@ -10,9 +10,7 @@ help:
 	@echo "Targets:"
 	@echo "  setup   Install dependencies and pull AI models (backend + frontend if present)"
 	@echo "  run     Run the Command Hub locally (Spring Boot on port 8081; requires Ollama)"
-	@echo "  build   Rebuild Java and React containers (Docker)"
 	@echo "  test    Run JUnit (backend) and frontend tests"
-	@echo "  up      Start the entire ship (Docker Compose)"
 	@echo "  down    Shut down all systems"
 	@echo "  logs    Tail the system logs"
 
@@ -22,21 +20,14 @@ setup:
 	cd backend && mvn clean install
 	@if [ -d frontend ]; then cd frontend && npm install; fi
 
-run:
-	cd backend && mvn spring-boot:run
+run-backend:
+	cd backend && mvn clean install && mvn spring-boot:run
 
-build:
-	docker-compose build
+run-frontend:
+	cd frontend && npm ci && npm run dev
 
 test:
 	cd backend && mvn test
 	@if [ -d frontend ]; then cd frontend && npm test; fi
 
-up:
-	docker-compose up -d
-
-down:
-	docker-compose down
-
-logs:
-	docker-compose logs -f
+    
