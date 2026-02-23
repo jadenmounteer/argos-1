@@ -1,42 +1,73 @@
-# Directive Protocol
-
-## Goal
-
-Implement the file-system "Sensor" that reads architectural rules from the .argos/directives folder and injects them into the LLM context.
-
-These rules can be shared by Cursor by having the .cursorRules reference the directives.
-
-This is what separates a generic chatbot from an Architectural argos. This protocol ensures that ARGOS-1 uses your local .argos/directives folder as its "Prime Directive," grounding its reasoning in your specific domain rules rather than generic training data.
-
-Goal: Create a high-fidelity context injection system that reads local Markdown files and uses them to ground the LLM's architectural analysis.
-
-### Tasks
-
-Note on Token Limits: Local models (8B) have smaller context windows than GPT-4. If your directives are 50 pages long, you will "clog" the brain. Keep directives concise and "snackable."
-
-Note on Security: Ensure the DirectiveScanner is restricted to only read from the .argos folder to prevent "Prompt Injection" attacks where a user asks ARGOS to read sensitive system files.
+Goal
+Implement the file-system "Sensor" that reads local architectural rules from the .argos/directives folder and injects them into the LLM context. This ensures ARGOS-1 reasons based on project-specific rules rather than generic AI training data.
 
 [ ] Task 1: Directive Schema & Storage
-Create the .argos/directives/ directory structure at the project root.
+Goal: Establish the physical source of truth for architectural rules.
 
-Populate it with initial "Mission Parameters" (e.g., architecture.md, security.md, coding_standards.md).
+[ ] Create .argos/directives/ directory at the project root.
 
-Senior Note: Ensure these files are written in clear, imperative Markdown (e.g., "The system SHALL NOT allow direct DB access from the UI layer").
+[ ] Create architecture.md: Define rules for Java/Spring Boot (e.g., "Use Repository pattern for DB access").
+
+[ ] Create api_standards.md: Define GraphQL rules (e.g., "All queries must use DataLoaders to avoid N+1 issues").
+
+[ ] Create fde_prototyping.md: Define speed rules (e.g., "Prioritize Tailwind for rapid UI iteration").
 
 [ ] Task 2: The "Directive Scanner" Service
-Implement a Java service in the Spring Boot Kernel to perform an IO-safe scan of the .argos/directives folder.
+Goal: A safe, robust Java service to pull local Markdown into the kernel.
 
-Add a caching layer using a simple Map or Caffeine so the system doesn't hit the disk for every single token generation.
+[ ] Create DirectiveScannerService.java in the kernel.
 
-[ ] Task 3: Semantic Router (The Logic)
-Implement logic that allows ARGOS-1 to decide which directive is relevant to a query.
-For MVP, just bundle all directives into a single "System Prompt."
+[ ] Implement loadAllDirectives(): Use java.nio.file to read all .md files in the configured path.
 
-[ ] Task 4: Prompt Engineering & Grounding
-Modify the IntelligenceService to wrap the user's query in a "Grounding Template."
+[ ] Use @Value("${argos.directives.path}") to inject the folder path from application.properties.
 
-Template Structure: [CONTEXT: Directives] -> [USER QUERY] -> [PERSONALITY CONSTRAINTS].
+[ ] Add a simple Map<String, String> cache to store file contents so the kernel isn't hitting the disk on every prompt.
 
-Ensure the LLM cites which directive it is following (e.g., "Per Directive 1.2, I recommend moving this logic...").
+[ ] Task 3: The PR Intelligence Bridge (Merged GitHub Logic)
+Goal: Connect to the GitHub API to fetch the "Subject Material" for the review.
 
-#### [ ] Task 5: Include Unit Tests for the DirectiveScanner to ensure it handles missing files or malformed Markdown gracefully.
+[ ] Add org.kohsuke:github-api dependency to pom.xml.
+
+[ ] Implement GitHubService.java: Use @Value("${github.auth.token}") and @Value("${github.target.repo}").
+
+[ ] Implement getPrDiff(int prId): Fetch the raw diff from the PR.
+
+[ ] FDE Shortcut: Use restTemplate to fetch the diffUrl content as a raw string to save on complex parsing.
+
+Gemini said
+To show the VP of Architecture that you understand the "Cost vs. Context" trade-off, we’ll restructure Task 4 to support Conditional Context. This proves you’re building a production tool, not just a script.
+
+Adding a toggle to the React frontend is a great "visual" win for the demo—it makes the "AI Grounding" concept tangible for non-technical folks like Tania.
+
+[ ] Task 4: Context-Aware Intelligence Integration
+Goal: Implement "Selective Hydration" of the LLM context so ARGOS-1 can switch between a generic coding assistant and a project-specific Senior Architect.
+
+Backend: Intelligence Service Logic
+[ ] Refactor IntelligenceService.java: Create a unified ChatRequest DTO that includes the user prompt and a boolean isGrounded.
+
+[ ] Implement Conditional Prompting:
+
+If isGrounded is False: Send the raw user prompt.
+
+If isGrounded is True: Wrap the user prompt in the Architectural Template (Injecting the directives from Task 2).
+
+[ ] Logic for PR Reviews: Ensure the /api/tactical/review endpoint always sets isGrounded = true by default, as a PR review without rules is just a syntax check.
+
+Frontend: The "Tactical Toggle" (React)
+[ ] Add UI Component: In the chat input area, add a stylized Toggle Switch labeled "Use local directives"
+
+[ ] State Management: Connect the toggle state to your API call. When the toggle is "Active," the frontend sends isGrounded: true to the backend.
+
+[ ] Visual Feedback: When Grounding is active, change the border color of the chat input (e.g., to a "Pioneer Blue" or "Tactical Amber") to signify that the AI is now reasoning against local directives.
+
+[ ] Task 5: The Tactical Review Endpoint
+Goal: Create the trigger mechanism for the demo.
+
+[ ] Implement ReviewController.java with a GET mapping: /api/tactical/review/{prId}.
+
+[ ] Orchestrate the flow: Scanner -> GitHub -> Intelligence -> Response.
+
+[ ] Log "Tactical Scan Initiated" to the console.
+
+Senior Dev Implementation Note for Cursor:
+"Cursor, when implementing the DirectiveScannerService, ensure you handle the IOException if the .argos folder is missing. If it is missing, log a warning but do not crash the application; simply proceed with an empty directive set."

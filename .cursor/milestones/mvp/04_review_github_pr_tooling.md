@@ -1,45 +1,64 @@
-# Review Github PR tooling.
+Milestone 04: Tactical PR Analysis & Connectivity
+Goal
+Establish a high-bandwidth connection to GitHub and implement "Intelligence Filtering" to ensure the LLM receives clean, relevant code data for architectural review.
 
-## Goal
+[ ] Task 1: GitHub Infrastructure & Resilience
+Goal: Securely initialize the GitHub client and handle connection state.
 
-Connect ARGOS to the GitHub API to allow it to "scan" PR diffs and fetch remote code for analysis.
+[ ] Client Initialization: In GitHubService.java, use the GitHubBuilder to instantiate the client using the ${GITHUB_TOKEN}.
 
-### PM Recommendation
+[ ] Connectivity Check: Add a @PostConstruct method that performs a lightweight API call (e.g., github.getMyself()) to verify the token on startup.
 
-For the MVP, we will stick to Stateless Analysis. ARGOS will fetch the PR diff and the content of the modified files. This is enough to check for architectural "Directives" without the overhead of managing a full local clone/build environment.
+[ ] Error Handling: Wrap GitHub calls in a try-catch block that throws a custom TacticalLinkException if the repo or PR is not found.
 
-### Tasks
+[ ] Task 2: Advanced Diff Extraction (The "FDE" Shortcut)
+Goal: Retrieve the PR data in the most token-efficient format.
 
-Note on Rate Limiting: While the GitHub API is free, unoptimized calls (like fetching every file in a repo) will hit limits. Always fetch the "List of Files" in a PR first, then selectively fetch content.
+[ ] Implement fetchRawDiff:
 
-Note on Security: Since you are running this locally, ensure your GitHub Token is in your .gitignore. If you accidentally commit it, GitHub will revoke it automatically, but it’s a bad look for a Senior Architect demo!
+Use the GHPullRequest object to get the getDiffUrl().
 
-[ ] Task 1: GitHub API Authentication & Config
-Generate a Personal Access Token (PAT) on GitHub with repo and pull_requests scopes.
+Use RestTemplate or WebClient to fetch that URL as a String.
 
-Implement a secure SecretManager service in Spring Boot to store the token (use environment variables, never hardcode).
+Senior Note: This is faster and cleaner than iterating through every file hunk via the library.
 
-Configure the GitHub Java library (e.g., org.kohsuke:github-api) within the Kernel.
+[ ] Implement fetchFileContent: Create a helper method to fetch the entire content of a specific file path if the LLM requests more context.
 
-[ ] Task 2 The "PR Intelligence Bridge"
-Goal: Create a direct pipeline where ARGOS-1 can fetch a PR and immediately process it against your local directives.
+[ ] Task 3: The "Noise Filter" (Diff Sanitizer)
+Goal: Strip out junk data to save tokens and improve LLM focus.
 
-Implement GitHubService: Create a Spring Boot service using org.kohsuke:github-api that accepts a PR ID, fetches the diff string, and identifies which files were changed.
+[ ] Implement DiffSanitizer.java:
 
-Create the "Review Controller": Build a simple endpoint (e.g., /api/review/{prId}) that triggers the following sequence:
+Remove binary file references.
 
-Fetch: Pull the PR diff from GitHub.
+Ignore lockfiles (e.g., package-lock.json, pnpm-lock.yaml, target/).
 
-Ground: Read the .argos/directives Markdown files.
+Optional: Strip hunk headers (@@ ... @@) if the diff is massive, but keep them if the diff is small (they help the LLM find line numbers).
 
-Analyze: Send the combined [Directives] + [Diff] to your LLM Kernel.
+[ ] Size Guard: If the sanitized diff exceeds a specific character limit (e.g., 20,000 characters), truncate it and append a warning: [TRUNCATED: PR too large for full scan].
 
-Senior Note: To save tokens and avoid the "clutter" of massive diffs, only fetch the diff for the initial scan. If the LLM identifies a specific file as "suspicious," you can then fetch the full content of that single file.
+When you implement the DiffSanitizer, make sure it also ignores hidden files like .DS_Store or .gitignore. These add zero value to an architectural review but eat up tokens.
 
-[ ] Task 3: Diff Parsing & Cleaning
-Implement a "Diff Sanitizer" utility to strip out non-essential metadata (like hunk headers @@ -1,4 +1,4 @@) to save LLM tokens.
+[ ] Task 4: Real-Time Tactical Feedback (React)
+Goal: Make the "Thinking" process visible to the user (and the interviewers).
 
-Create a logic gate that prevents ARGOS from fetching binary files (images, PDFs) or massive generated files (like package-lock.json).
+[ ] Status Stream: Update the frontend to display the current sub-stage of the review:
 
-[ ] Task 5: Tactical Status Updates
-Update the React Console to show what is going on and at what stage in the process you are in. This might already work because of our thought logic.
+🛰️ Establishing link with Github...
+
+🔍 Scanning Argos-1 Directives...
+
+🧠 Analyzing Architectural Alignment...
+
+[ ] Prompt Engineering: Instruct the LLM to provide the File Path and Line Number (if available) for every violation.
+
+[ ] React Formatting: Use a library like react-markdown to make sure the LLM’s response looks like a professional report, not just a wall of text (see below example).
+
+⚠️ Directive Violation Detected
+File: src/main/java/Service.java
+Rule: api_standards.md - Rule 1.2 (N+1 Prevention)
+Issue: You are calling the database inside a for loop.
+Suggested Fix: Refactor this to use a DataLoader...
+
+Senior Dev Implementation Note for Cursor:
+"Cursor, when implementing the DiffSanitizer, use a Regex-based approach to identify and skip common metadata files. Ensure the GitHubService uses the repo name configured in application.properties so we can easily switch between test repos."
