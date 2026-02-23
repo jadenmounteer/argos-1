@@ -1,5 +1,6 @@
 package com.argos.infrastructure.directives;
 
+import com.argos.domain.ports.DirectivePort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +19,7 @@ import java.util.stream.Stream;
  * a single concatenated string. Caches file contents to minimize disk I/O.
  */
 @Component
-public class DirectiveScannerService {
+public class DirectiveScannerService implements DirectivePort {
 
     private static final Logger log = LoggerFactory.getLogger(DirectiveScannerService.class);
     private static final String SEPARATOR = "\n\n---\n\n";

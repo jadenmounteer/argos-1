@@ -1,5 +1,6 @@
 package com.argos.domain.model;
 
+import com.argos.application.gateway.JsonRpcCommandRequest;
 import com.argos.domain.ports.IntelligencePort;
 import com.argos.domain.ports.LlmPort;
 import com.argos.domain.ports.SystemPromptProvider;
@@ -24,16 +25,20 @@ public class IntelligenceService implements IntelligencePort {
         this.systemPromptProvider = systemPromptProvider;
     }
 
+    private static JsonRpcCommandRequest.Params minimalParams() {
+        return new JsonRpcCommandRequest.Params(null, false, null, null);
+    }
+
     @Override
     public AgentResponse process(ArgosCommand command) {
-        String systemPrompt = systemPromptProvider.getSystemPrompt();
+        String systemPrompt = systemPromptProvider.getSystemPrompt(minimalParams());
         String responseText = llmPort.generate(command.input(), systemPrompt);
         return new AgentResponse("", "", responseText != null ? responseText : "");
     }
 
     @Override
     public boolean verifyIdentity() {
-        String systemPrompt = systemPromptProvider.getSystemPrompt();
+        String systemPrompt = systemPromptProvider.getSystemPrompt(minimalParams());
         String response = llmPort.generate(IDENTITY_QUESTION, systemPrompt);
         return response != null && response.toUpperCase().contains(IDENTITY_MARKER.toUpperCase());
     }

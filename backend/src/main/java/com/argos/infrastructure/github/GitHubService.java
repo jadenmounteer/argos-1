@@ -1,5 +1,6 @@
 package com.argos.infrastructure.github;
 
+import com.argos.domain.ports.GitRepoPort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
@@ -22,7 +23,7 @@ import java.net.URI;
  * for the diff URL and RestTemplate for the HTTP GET.
  */
 @Service
-public class GitHubService {
+public class GitHubService implements GitRepoPort {
 
     private static final Logger log = LoggerFactory.getLogger(GitHubService.class);
     private static final String AUTH_HEADER_PREFIX = "token ";

@@ -1,5 +1,7 @@
 package com.argos.application.gateway;
 
+import com.argos.domain.ports.DirectivePort;
+import com.argos.domain.ports.GitRepoPort;
 import com.argos.domain.ports.LlmStreamPort;
 import com.argos.domain.ports.SystemPromptProvider;
 import com.argos.domain.ports.TokenHandler;
@@ -9,25 +11,36 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * Application layer: JSON-RPC bridge and SSE stream. Orchestrates LlmStreamPort and SystemPromptProvider.
+ * Application layer: JSON-RPC bridge and SSE stream. Orchestrates LlmStreamPort, SystemPromptProvider,
+ * DirectivePort, and GitRepoPort. Hydrates params (PR diff, directives) and assembles system prompt.
  */
 @Service
 public class CommandGateway {
 
     private static final String THOUGHT_OPEN = "<thought>";
     private static final String THOUGHT_CLOSE = "</thought>";
+    private static final Pattern PR_INTENT = Pattern.compile(
+            "(?i)(?:review|analyze|check|scan)\\s+(?:pull\\s+request|pr)\\s+(?:number\\s+)?(\\d+)");
 
     private final LlmStreamPort llmStreamPort;
     private final SystemPromptProvider systemPromptProvider;
+    private final DirectivePort directivePort;
+    private final GitRepoPort gitRepoPort;
     private final long sseTimeoutMs;
 
     public CommandGateway(LlmStreamPort llmStreamPort,
                           SystemPromptProvider systemPromptProvider,
+                          DirectivePort directivePort,
+                          GitRepoPort gitRepoPort,
                           @Value("${argos.sse.timeout-ms:60000}") long sseTimeoutMs) {
         this.llmStreamPort = llmStreamPort;
         this.systemPromptProvider = systemPromptProvider;
+        this.directivePort = directivePort;
+        this.gitRepoPort = gitRepoPort;
         this.sseTimeoutMs = sseTimeoutMs;
     }
 
@@ -48,7 +61,6 @@ public class CommandGateway {
         });
 
         String input = request.getInput() != null ? request.getInput() : "";
-        String systemPrompt = systemPromptProvider.getSystemPrompt();
         Object requestId = request.id();
 
         TokenHandler handler = new TokenHandler() {
@@ -56,6 +68,14 @@ public class CommandGateway {
             boolean inThought = false;
             final StringBuilder thoughtAccumulator = new StringBuilder();
             final StringBuilder responseAccumulator = new StringBuilder();
+
+            @Override
+            public void handleThought(String text) {
+                if (text != null && !text.isEmpty()) {
+                    thoughtAccumulator.append(text);
+                    emitNotification(emitter, "thought", Map.of("text", text));
+                }
+            }
 
             @Override
             public void onToken(String token) {
@@ -159,6 +179,46 @@ public class CommandGateway {
                 emitter.completeWithError(error);
             }
         };
+
+        Integer prId = null;
+        Matcher prMatcher = PR_INTENT.matcher(input);
+        if (prMatcher.find()) {
+            try {
+                prId = Integer.valueOf(prMatcher.group(1));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        String internalContext = "";
+        if (prId != null) {
+            handler.handleThought("COMMAND DETECTED: Fetching PR Data...");
+            try {
+                internalContext = gitRepoPort.getRawDiff(prId.intValue());
+                if (internalContext == null) {
+                    internalContext = "";
+                }
+            } catch (Exception ignored) {
+                internalContext = "";
+            }
+        }
+
+        boolean isGrounded = Boolean.TRUE.equals(request.getIsGrounded());
+        boolean needDirectives = isGrounded || prId != null;
+        String directives = "";
+        if (needDirectives) {
+            handler.handleThought("Loading directives...");
+            directives = directivePort.getCombinedDirectives();
+            if (directives == null) {
+                directives = "";
+            }
+        }
+
+        JsonRpcCommandRequest.Params enrichedParams = new JsonRpcCommandRequest.Params(
+                input,
+                isGrounded,
+                internalContext,
+                directives);
+        String systemPrompt = systemPromptProvider.getSystemPrompt(enrichedParams);
 
         new Thread(() -> {
             try {

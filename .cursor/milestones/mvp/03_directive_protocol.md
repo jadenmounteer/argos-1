@@ -32,28 +32,28 @@ Use ${GITHUB_TOKEN} and ${TARGET_GITHUB_REPO} from environment variables.
 
 Implement getRawDiff(int prId): Fetches the raw diff text from GitHub's .diff URL via RestTemplate.
 
-[ ] Task 4: Unified Gateway & "Dynamic Assembly" Prompting
+[x] Task 4: Unified Gateway & "Dynamic Assembly" Prompting
 Goal: The "Brain" that intercepts voice/text prompts and hydrates the system prompt using decoupled Ports and a task-specific persona shift.
 
-[ ] Define Domain Ports (Interfaces):
+[x] Define Domain Ports (Interfaces):
 
 Create DirectivePort.java with method String getCombinedDirectives().
 
 Create GitRepoPort.java with method String getRawDiff(int prId).
 
-[ ] Implement Infrastructure Adapters:
+[x] Implement Infrastructure Adapters:
 
 Ensure DirectiveScannerService implements DirectivePort.
 
 Ensure GitHubService implements GitRepoPort.
 
-[ ] Refactor JsonRpcParams:
+[x] Refactor JsonRpcParams:
 
 Add boolean isGrounded, String internalContext, and String directives.
 
 Strict Rule: Annotate internalContext and directives with @JsonIgnore to ensure they remain Server-Side Only and cannot be manipulated by the client.
 
-[ ] Update CommandGateway.java (Orchestration):
+[x] Update CommandGateway.java (Orchestration):
 
 Dependency Inversion: Inject DirectivePort and GitRepoPort interfaces via constructor.
 
@@ -67,7 +67,7 @@ If Regex matches: Fetch diff via GitRepoPort into internalContext.
 
 If isGrounded is true OR PR is detected: Fetch directives via DirectivePort.
 
-[ ] Update ArgosSystemPromptProvider.java (The Persona Shift):
+[x] Update ArgosSystemPromptProvider.java (The Persona Shift):
 
 Layered Assembly: Modify getSystemPrompt(JsonRpcParams params) to build the prompt in stages:
 
