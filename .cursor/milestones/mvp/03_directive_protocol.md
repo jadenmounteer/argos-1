@@ -12,16 +12,16 @@ Goal: Establish the physical source of truth for architectural rules.
 
 [x] Create architecture.md, api_standards.md
 
-[ ] Task 2: The "Directive Scanner" Service
+[x] Task 2: The "Directive Scanner" Service
 Goal: A robust Java service to pull local Markdown into the kernel.
 
-[ ] Create DirectiveScannerService.java.
+[x] Create DirectiveScannerService.java.
 
-[ ] Implement getCombinedDirectives(): Reads all .md files in the configured path and returns a single concatenated String.
+[x] Implement getCombinedDirectives(): Reads all .md files in the configured path and returns a single concatenated String.
 
-[ ] Add a Map<String, String> cache to minimize disk I/O during the demo.
+[x] Add a Map<String, String> cache to minimize disk I/O during the demo.
 
-[ ] Task 3: The GitHub Adapter (FDE Fast-Path)
+[] Task 3: The GitHub Adapter (FDE Fast-Path)
 Goal: Connect to GitHub to fetch the "Subject Material" for reviews.
 
 [ ] Add org.kohsuke:github-api to pom.xml.

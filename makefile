@@ -10,7 +10,8 @@ help:
 	@echo "Targets:"
 	@echo "  setup   Install dependencies and pull AI models (backend + frontend if present)"
 	@echo "  run     Run the Command Hub locally (Spring Boot on port 8081; requires Ollama)"
-	@echo "  test    Run JUnit (backend) and frontend tests"
+	@echo "  test-frontend    run frontend tests"
+	@echo "  test-backend    run backend tests"
 	@echo "  down    Shut down all systems"
 	@echo "  logs    Tail the system logs"
 
@@ -26,8 +27,9 @@ run-backend:
 run-frontend:
 	cd frontend && npm ci && npm run dev
 
-test:
-	cd backend && mvn test
-	@if [ -d frontend ]; then cd frontend && npm test; fi
+test-frontend:
+	cd frontend && npm test
 
+test-backend:
+	cd backend && mvn test
     
