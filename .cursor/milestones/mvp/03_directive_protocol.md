@@ -21,12 +21,12 @@ Goal: A robust Java service to pull local Markdown into the kernel.
 
 [x] Add a Map<String, String> cache to minimize disk I/O during the demo.
 
-[] Task 3: The GitHub Adapter (FDE Fast-Path)
+[x] Task 3: The GitHub Adapter
 Goal: Connect to GitHub to fetch the "Subject Material" for reviews.
 
-[ ] Add org.kohsuke:github-api to pom.xml.
+[x] Add org.kohsuke:github-api to pom.xml.
 
-[ ] Implement GitHubService.java:
+[x] Implement GitHubService.java:
 
 Use ${GITHUB_TOKEN} and ${TARGET_GITHUB_REPO} from environment variables.
 
