@@ -1,64 +1,53 @@
-Milestone 04: Tactical PR Analysis & Connectivity
 Goal
-Establish a high-bandwidth connection to GitHub and implement "Intelligence Filtering" to ensure the LLM receives clean, relevant code data for architectural review.
+Establish a high-bandwidth connection to GitHub and implement "Intelligence Filtering" to ensure the LLM receives clean, relevant code data. Optimize for a voice-activated demo where "Review PR 101" triggers an automated architectural scan.
 
-[ ] Task 1: GitHub Infrastructure & Resilience
-Goal: Securely initialize the GitHub client and handle connection state.
+[ ] Task 1: GitHub Infrastructure & Voice-Intent Detection
+Goal: Secure the link and make the system "listen" for tactical commands.
 
-[ ] Client Initialization: In GitHubService.java, use the GitHubBuilder to instantiate the client using the ${GITHUB_TOKEN}.
+[ ] Client Initialization: In GitHubService.java, initialize the GitHub client using ${GITHUB_TOKEN} and add a @PostConstruct health check.
 
-[ ] Connectivity Check: Add a @PostConstruct method that performs a lightweight API call (e.g., github.getMyself()) to verify the token on startup.
+[ ] Voice-Intent Router: In CommandGateway.java, implement the "Smart Interceptor":
 
-[ ] Error Handling: Wrap GitHub calls in a try-catch block that throws a custom TacticalLinkException if the repo or PR is not found.
+Use Regex: (?i)(?:review|analyze|check|scan)\s+(?:pull\s+request|pr)\s+(?:number\s+)?(\d+).
+
+If a match is found, extract the prId and automatically set isGrounded = true.
+
+[ ] Resilience: Implement TacticalLinkException to handle cases where the PR ID is misspoken or the repo is unreachable.
 
 [ ] Task 2: Advanced Diff Extraction (The "FDE" Shortcut)
-Goal: Retrieve the PR data in the most token-efficient format.
+Goal: Fetch the PR data quickly and store it in the internalContext.
 
-[ ] Implement fetchRawDiff:
+[ ] Implement fetchRawDiff: Use GHPullRequest.getDiffUrl() and RestTemplate to grab the raw string.
 
-Use the GHPullRequest object to get the getDiffUrl().
+[ ] Context Injection: Pass the raw diff into the ChatRequestDTO's internalContext field so the IntelligenceService can append it to the prompt.
 
-Use RestTemplate or WebClient to fetch that URL as a String.
-
-Senior Note: This is faster and cleaner than iterating through every file hunk via the library.
-
-[ ] Implement fetchFileContent: Create a helper method to fetch the entire content of a specific file path if the LLM requests more context.
-
-[ ] Task 3: The "Noise Filter" (Diff Sanitizer)
-Goal: Strip out junk data to save tokens and improve LLM focus.
+[ ] Task 3: The "Noise Filter" & Token Guard
+Goal: Clean the data to prevent "Clogged Brain" and save on LLM latency.
 
 [ ] Implement DiffSanitizer.java:
 
-Remove binary file references.
+Skip binary files (images, .jar, .exe).
 
-Ignore lockfiles (e.g., package-lock.json, pnpm-lock.yaml, target/).
+Ignore lockfiles and metadata: package-lock.json, pnpm-lock.yaml, .gitignore, .DS_Store, target/.
 
-Optional: Strip hunk headers (@@ ... @@) if the diff is massive, but keep them if the diff is small (they help the LLM find line numbers).
+Hunk Header Logic: Keep @@ headers for small diffs (helps with line numbers), but strip them if the diff exceeds 5,000 characters.
 
-[ ] Size Guard: If the sanitized diff exceeds a specific character limit (e.g., 20,000 characters), truncate it and append a warning: [TRUNCATED: PR too large for full scan].
-
-When you implement the DiffSanitizer, make sure it also ignores hidden files like .DS_Store or .gitignore. These add zero value to an architectural review but eat up tokens.
+[ ] Size Guard: If the sanitized diff > 20,000 characters, truncate and append a warning: [TRUNCATED: PR too large for full scan].
 
 [ ] Task 4: Real-Time Tactical Feedback (React)
-Goal: Make the "Thinking" process visible to the user (and the interviewers).
+Goal: Make the "Invisible" voice process visible and professional.
 
-[ ] Status Stream: Update the frontend to display the current sub-stage of the review:
+[ ] Status Stream: Update the frontend to display the current state based on the backend logic:
 
-🛰️ Establishing link with Github...
+🛰️ COMMAND DETECTED: Fetching PR Data...
 
-🔍 Scanning Argos-1 Directives...
+🔍 GROUNDING: Loading Architectural Directives...
 
-🧠 Analyzing Architectural Alignment...
+🧠 THINKING: Evaluating code against standards...
 
-[ ] Prompt Engineering: Instruct the LLM to provide the File Path and Line Number (if available) for every violation.
+[ ] Prompt Engineering: Update the SystemPrompt to force a "Senior Architect" persona that provides File Path and Line Number for every violation.
 
-[ ] React Formatting: Use a library like react-markdown to make sure the LLM’s response looks like a professional report, not just a wall of text (see below example).
-
-⚠️ Directive Violation Detected
-File: src/main/java/Service.java
-Rule: api_standards.md - Rule 1.2 (N+1 Prevention)
-Issue: You are calling the database inside a for loop.
-Suggested Fix: Refactor this to use a DataLoader...
+[ ] React Markdown: Ensure the output renders as a professional report using react-markdown.
 
 Senior Dev Implementation Note for Cursor:
-"Cursor, when implementing the DiffSanitizer, use a Regex-based approach to identify and skip common metadata files. Ensure the GitHubService uses the repo name configured in application.properties so we can easily switch between test repos."
+"Cursor, when implementing the DiffSanitizer, use a case-insensitive Regex to identify and skip common metadata files. In the CommandGateway, ensure that the voice-intent detection happens BEFORE the LLM call, so that the diff is already present in the prompt context when the model starts generating."

@@ -1,73 +1,62 @@
 Goal
-Implement the file-system "Sensor" that reads local architectural rules from the .argos/directives folder and injects them into the LLM context. This ensures ARGOS-1 reasons based on project-specific rules rather than generic AI training data.
+Implement the file-system "Sensor" and an intelligent Gateway that orchestrates local directives and GitHub data. This allows ARGOS-1 to pivot from a general assistant to a "Grounded Architect" via a UI toggle or natural language voice commands like "Review PR 101."
 
 [ ] Task 1: Directive Schema & Storage
 Goal: Establish the physical source of truth for architectural rules.
 
 [ ] Create .argos/directives/ directory at the project root.
 
-[ ] Create architecture.md: Define rules for Java/Spring Boot (e.g., "Use Repository pattern for DB access").
+[ ] Create architecture.md, api_standards.md, and fde_prototyping.md.
 
-[ ] Create api_standards.md: Define GraphQL rules (e.g., "All queries must use DataLoaders to avoid N+1 issues").
-
-[ ] Create fde_prototyping.md: Define speed rules (e.g., "Prioritize Tailwind for rapid UI iteration").
+[ ] Senior Note: Write 2-3 high-impact rules in each (e.g., "All GraphQL resolvers MUST use the @BatchMapping pattern to prevent N+1 queries").
 
 [ ] Task 2: The "Directive Scanner" Service
-Goal: A safe, robust Java service to pull local Markdown into the kernel.
+Goal: A robust Java service to pull local Markdown into the kernel.
 
-[ ] Create DirectiveScannerService.java in the kernel.
+[ ] Create DirectiveScannerService.java.
 
-[ ] Implement loadAllDirectives(): Use java.nio.file to read all .md files in the configured path.
+[ ] Implement getCombinedDirectives(): Reads all .md files in the configured path and returns a single concatenated String.
 
-[ ] Use @Value("${argos.directives.path}") to inject the folder path from application.properties.
+[ ] Add a Map<String, String> cache to minimize disk I/O during the demo.
 
-[ ] Add a simple Map<String, String> cache to store file contents so the kernel isn't hitting the disk on every prompt.
+[ ] Task 3: The GitHub Adapter (FDE Fast-Path)
+Goal: Connect to GitHub to fetch the "Subject Material" for reviews.
 
-[ ] Task 3: The PR Intelligence Bridge (Merged GitHub Logic)
-Goal: Connect to the GitHub API to fetch the "Subject Material" for the review.
+[ ] Add org.kohsuke:github-api to pom.xml.
 
-[ ] Add org.kohsuke:github-api dependency to pom.xml.
+[ ] Implement GitHubService.java:
 
-[ ] Implement GitHubService.java: Use @Value("${github.auth.token}") and @Value("${github.target.repo}").
+Use ${GITHUB_TOKEN} and ${GITHUB_REPO} from environment variables.
 
-[ ] Implement getPrDiff(int prId): Fetch the raw diff from the PR.
+Implement getRawDiff(int prId): Fetches the raw diff text from GitHub's .diff URL via RestTemplate.
 
-[ ] FDE Shortcut: Use restTemplate to fetch the diffUrl content as a raw string to save on complex parsing.
+[ ] Task 4: Unified Gateway & Voice-Intent Detection
+Goal: The "Brain" that intercepts voice prompts to hydrate context.
 
-Gemini said
-To show the VP of Architecture that you understand the "Cost vs. Context" trade-off, we’ll restructure Task 4 to support Conditional Context. This proves you’re building a production tool, not just a script.
+[ ] Refactor ChatRequestDTO: Add boolean isGrounded and String internalContext.
 
-Adding a toggle to the React frontend is a great "visual" win for the demo—it makes the "AI Grounding" concept tangible for non-technical folks like Tania.
+[ ] Update CommandGateway.java:
 
-[ ] Task 4: Context-Aware Intelligence Integration
-Goal: Implement "Selective Hydration" of the LLM context so ARGOS-1 can switch between a generic coding assistant and a project-specific Senior Architect.
+Voice-Intent Logic: Use Regex to check the incoming message for phrases like "review PR [ID]" or "analyze PR [ID]".
 
-Backend: Intelligence Service Logic
-[ ] Refactor IntelligenceService.java: Create a unified ChatRequest DTO that includes the user prompt and a boolean isGrounded.
+Hydration: If a PR is detected, call GitHubService.getRawDiff() and store it in internalContext.
 
-[ ] Implement Conditional Prompting:
+Grounding: If isGrounded is true OR a PR is detected, call DirectiveScannerService to fetch the architectural rules.
 
-If isGrounded is False: Send the raw user prompt.
+[ ] Update IntelligenceService: Wrap the user's voice prompt in a Grounding Template if directives or context are present.
 
-If isGrounded is True: Wrap the user prompt in the Architectural Template (Injecting the directives from Task 2).
+[ ] Task 5: Frontend "Tactical Toggle" & Feedback (React)
+Goal: Visual confirmation that the voice command was understood.
 
-[ ] Logic for PR Reviews: Ensure the /api/tactical/review endpoint always sets isGrounded = true by default, as a PR review without rules is just a syntax check.
+[ ] Add Toggle Component: Switch labeled "Use local directives". Ensure it sends isGrounded: true in the API payload when active.
 
-Frontend: The "Tactical Toggle" (React)
-[ ] Add UI Component: In the chat input area, add a stylized Toggle Switch labeled "Use local directives"
+[ ] Visual Feedback Loop:
 
-[ ] State Management: Connect the toggle state to your API call. When the toggle is "Active," the frontend sends isGrounded: true to the backend.
+When isGrounded is active, change the chat input border to a "Pioneer Blue" glow.
 
-[ ] Visual Feedback: When Grounding is active, change the border color of the chat input (e.g., to a "Pioneer Blue" or "Tactical Amber") to signify that the AI is now reasoning against local directives.
+When a PR command is detected, display a temporary "Tactical HUD" badge: 🛰️ COMMAND: PR_REVIEW_ACTIVE.
 
-[ ] Task 5: The Tactical Review Endpoint
-Goal: Create the trigger mechanism for the demo.
-
-[ ] Implement ReviewController.java with a GET mapping: /api/tactical/review/{prId}.
-
-[ ] Orchestrate the flow: Scanner -> GitHub -> Intelligence -> Response.
-
-[ ] Log "Tactical Scan Initiated" to the console.
+[ ] Status Stream: Ensure the UI displays the sub-stages (e.g., "🔍 Scanning local directives...") so the user knows why there is a slight pause for I/O.
 
 Senior Dev Implementation Note for Cursor:
-"Cursor, when implementing the DirectiveScannerService, ensure you handle the IOException if the .argos folder is missing. If it is missing, log a warning but do not crash the application; simply proceed with an empty directive set."
+"Cursor, in CommandGateway.java, use the following regex to detect PR intents in the voice string: (?i)(?:review|analyze|check|scan)\s+(?:pull\s+request|pr)\s+(?:number\s+)?(\d+). If a match is found, capture group 1 as the prId and automatically set isGrounded = true for the duration of that request."

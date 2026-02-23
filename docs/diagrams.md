@@ -75,3 +75,60 @@ flowchart TD
 ```
 
 - CommandGateway orchestrates LlmStreamPort and SystemPromptProvider; OllamaStreamingAdapter calls Ollama via LangChain4j.
+
+## Agentic AI workflow
+
+flowchart TD
+subgraph REST [REST Adapter]
+KC[KernelController]
+end
+
+subgraph App [Application Layer]
+CG[CommandGateway]
+IR[Intent & Voice Command Router]
+TH[TokenHandler]
+CRD[ChatRequestDTO - isGrounded flag]
+end
+
+subgraph Domain [Domain Ports]
+LSP[LlmStreamPort]
+SPP[SystemPromptProvider]
+DSP[DirectivePort]
+GRP[GitRepoPort]
+end
+
+subgraph Infra [Infrastructure]
+OSA[OllamaStreamingAdapter]
+ASP[ArgosSystemPromptProvider]
+DSS[DirectiveScannerService - Local FS]
+GHS[GitHubService - Remote API]
+DSN[DiffSanitizer - Utility]
+end
+
+Ext[Ollama LLM]
+GAPI[GitHub API]
+
+%% Request Flow
+KC -->|ChatRequestDTO| CG
+CG --> IR
+
+%% Command Detection & Hydration
+IR -->|Regex: 'Review PR'| GRP
+GRP --> GHS
+GHS -.-> DSN
+GHS --- GAPI
+
+%% Grounding Logic
+IR -->|if Toggle ON or PR found| DSP
+DSP --> DSS
+
+%% Intelligence Loop
+CG -->|Aggregated Context| SPP
+SPP --> ASP
+CG -->|Grounded Prompt| LSP
+LSP --> OSA
+OSA -->|Stream| Ext
+
+%% Output
+OSA --> TH
+TH --> Emitter[SseEmitter]
