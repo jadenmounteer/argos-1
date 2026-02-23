@@ -19,6 +19,8 @@ export type UseIntelligenceStreamOptions = {
   onResponseChunk?: (segment: string) => void;
   /** Called once when the stream ends with the full accumulated response text (never thought content). */
   onResponseFinalized?: (text: string) => void;
+  /** When true, send isGrounded: true so backend includes local directives in the prompt. */
+  isGrounded?: boolean;
 };
 
 const SENTENCE_REGEX = /[.!?](\s+|$)/g;
@@ -49,7 +51,7 @@ function flushSentences(
 }
 
 export function useIntelligenceStream(options: UseIntelligenceStreamOptions = {}) {
-  const { onResponseSentence, onResponseChunk, onResponseFinalized } = options;
+  const { onResponseSentence, onResponseChunk, onResponseFinalized, isGrounded } = options;
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamError, setStreamError] = useState<string | null>(null);
   const [thoughtLog, setThoughtLog] = useState("");
@@ -78,7 +80,7 @@ export function useIntelligenceStream(options: UseIntelligenceStreamOptions = {}
       const body = JSON.stringify({
         jsonrpc: "2.0",
         method: "process_voice",
-        params: { input: text },
+        params: { input: text, isGrounded: isGrounded ?? false },
         id: crypto.randomUUID(),
       });
 
@@ -175,7 +177,7 @@ export function useIntelligenceStream(options: UseIntelligenceStreamOptions = {}
         setIsStreaming(false);
       }
     },
-    [onResponseSentence, onResponseChunk, onResponseFinalized],
+    [onResponseSentence, onResponseChunk, onResponseFinalized, isGrounded],
   );
 
   return {

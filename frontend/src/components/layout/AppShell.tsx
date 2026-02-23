@@ -10,6 +10,9 @@ import { useVocal } from "../../context/VocalContext";
  * Root layout: main wrapper (frame with title break), then two columns —
  * left: buttons + prompt, right: logs and responses.
  */
+/** Matches PR review intent; keep in sync with backend CommandGateway. */
+const PR_INTENT_REGEX = /(?:review|analyze|check|scan)\s+(?:pull\s+request|pr)\s+(?:number\s+)?(\d+)/i;
+
 export function AppShell({
   sendCommand,
   thoughtLog = "",
@@ -17,6 +20,8 @@ export function AppShell({
   isStreaming = false,
   speakingOn = false,
   setSpeakingOn,
+  isGrounded = false,
+  setIsGrounded,
 }: {
   sendCommand: (text: string) => void;
   thoughtLog?: string;
@@ -24,8 +29,11 @@ export function AppShell({
   isStreaming?: boolean;
   speakingOn?: boolean;
   setSpeakingOn?: (value: boolean) => void;
+  isGrounded?: boolean;
+  setIsGrounded?: (value: boolean) => void;
 }) {
   const { listeningMode, promptText } = useVocal();
+  const prCommandDetected = PR_INTENT_REGEX.test(promptText.trim());
 
   const handleSubmit = () => {
     sendCommand(promptText.trim());
@@ -38,8 +46,15 @@ export function AppShell({
           <ButtonStrip
             speakingOn={speakingOn}
             setSpeakingOn={setSpeakingOn ?? (() => {})}
+            isGrounded={isGrounded}
+            setIsGrounded={setIsGrounded ?? (() => {})}
           />
-          <PromptArea />
+          {prCommandDetected && (
+            <div className="tactical-hud-badge" role="status">
+              🛰️ COMMAND: PR_REVIEW_ACTIVE
+            </div>
+          )}
+          <PromptArea isGrounded={isGrounded} />
           {!listeningMode && (
             <LcarsButton color="primary" onClick={handleSubmit}>
               <p>Execute</p>

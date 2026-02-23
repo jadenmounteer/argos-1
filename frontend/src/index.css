@@ -22,6 +22,7 @@
   --lcars-color-a9: #8b72aa;
   --lcars-color-science-teal: #008080;
   --lcars-color-command-gold: #ffd700;
+  --lcars-color-grounded-blue: #3b82f6;
   --main-wrapper-bar: 12px;
   --page-inset: 1.5rem;
 }
@@ -91,6 +92,27 @@ body {
   cursor: pointer;
 }
 
+.setting-button--on {
+  box-shadow: 0 0 0 2px var(--lcars-color-command-gold);
+}
+
+.button-strip-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--lcars-color-a9);
+}
+
+.button-strip-label-text {
+  font-weight: 500;
+}
+
+.button-strip-label-value {
+  color: var(--lcars-color-a5);
+}
+
 /* Prompt area container */
 .prompt-area {
   width: 100%;
@@ -119,6 +141,30 @@ body {
 .prompt-area__input:focus {
   outline: none;
   box-shadow: 0 0 0 2px var(--lcars-color-a1);
+}
+
+.prompt-area__input--grounded {
+  border-color: var(--lcars-color-grounded-blue);
+  box-shadow: 0 0 0 2px var(--lcars-color-grounded-blue),
+    0 0 12px var(--lcars-color-grounded-blue);
+}
+
+.prompt-area__input--grounded:focus {
+  box-shadow: 0 0 0 2px var(--lcars-color-grounded-blue),
+    0 0 12px var(--lcars-color-grounded-blue);
+}
+
+.tactical-hud-badge {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--lcars-color-command-gold);
+  background-color: var(--lcars-color-black);
+  border: 1px solid var(--lcars-color-a9);
+  border-radius: 0.25rem;
+  width: fit-content;
 }
 
 /* Right column: fills remaining space so logs box can be tall */

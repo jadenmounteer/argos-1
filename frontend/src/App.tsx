@@ -1,10 +1,11 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { VocalProvider } from "./context/VocalContext";
 import { useComputerVoice } from "./hooks/audio/useComputerVoice";
 import { useIntelligenceStream } from "./hooks/useIntelligenceStream";
 import { AppShell } from "./components/layout/AppShell";
 
 function AppWithVocal() {
+  const [isGrounded, setIsGrounded] = useState(false);
   const { speakSentence, cancel, isSpeaking, speakingOn, setSpeakingOn } =
     useComputerVoice();
   const {
@@ -14,6 +15,7 @@ function AppWithVocal() {
     isStreaming,
   } = useIntelligenceStream({
     onResponseSentence: (sentence) => speakSentence(sentence),
+    isGrounded,
   });
   const sendCommand = useCallback(
     (text: string) => {
@@ -34,6 +36,8 @@ function AppWithVocal() {
         isStreaming={isStreaming}
         speakingOn={speakingOn}
         setSpeakingOn={setSpeakingOn}
+        isGrounded={isGrounded}
+        setIsGrounded={setIsGrounded}
       />
     </VocalProvider>
   );

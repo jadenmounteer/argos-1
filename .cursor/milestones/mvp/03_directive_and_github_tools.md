@@ -77,23 +77,13 @@ Grounding (If directives present): Append rules and instructions to prioritize l
 
 Tactical (If internalContext present): Append the "Senior Architect" persona instructions. Explicitly require File Paths and Line Numbers for all findings.
 
-[ ] Task 5: Frontend "Tactical Toggle" & Feedback (React)
+[x] Task 5: Frontend "Tactical Toggle" & Feedback (React)
 Goal: Visual confirmation that the voice command was understood.
 
-[ ] Add Toggle Component: Switch labeled "Use local directives". Ensure it sends isGrounded: true in the API payload when active.
+[x] Add Toggle Component: Switch labeled "Use local directives". Ensure it sends isGrounded: true in the API payload when active. This can be a checkbox near the other setting toggle buttons.
 
-[ ] Visual Feedback Loop:
+[x] Visual Feedback Loop:
 
-When isGrounded is active, change the chat input border to a "Pioneer Blue" glow.
+When isGrounded is active, change the chat input border to a "Blue" glow.
 
 When a PR command is detected, display a temporary "Tactical HUD" badge: 🛰️ COMMAND: PR_REVIEW_ACTIVE.
-
-[ ] Status Stream: Update the UI to show sub-stages (e.g., "🔍 Scanning local directives...") to keep the user engaged during I/O.
-
-Senior Dev Implementation Note for Cursor:
-"Cursor, in CommandGateway.java, use the regex (?i)(?:review|analyze|check|scan)\s+(?:pull\s+request|pr)\s+(?:number\s+)?(\d+) to detect PR intents. Crucially, do not modify the streaming flow in IntelligenceService. Instead, move the 'Grounding' logic into ArgosSystemPromptProvider. This ensures that CommandGateway hydrates the data, and SystemPromptProvider assembles the final instructions for the LlmStreamPort."
-
-The "Architect" Defense for Task 4:
-When you demo this, you’re showing Separation of Concerns.
-
-"The Gateway identifies the Intent, the Infrastructure services fetch the Context, and the Prompt Provider handles the Instruction Assembly. This keeps our streaming pipeline pure and allows us to swap models or data sources without re-writing our core logic."

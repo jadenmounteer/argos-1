@@ -1,14 +1,17 @@
 import { useVocal } from "../context/VocalContext";
 /**
- * Four buttons in a strip (2x2). First button toggles Listening Mode (wake word only).
- * Second button toggles TTS (speaking on/off).
+ * Setting buttons: Listening (wake word), TTS (voice on/off), Use local directives (isGrounded).
  */
 export function ButtonStrip({
   speakingOn = false,
   setSpeakingOn = () => {},
+  isGrounded = false,
+  setIsGrounded = () => {},
 }: {
   speakingOn?: boolean;
   setSpeakingOn?: (value: boolean) => void;
+  isGrounded?: boolean;
+  setIsGrounded?: (value: boolean) => void;
 } = {}) {
   const {
     listeningMode,
@@ -27,15 +30,6 @@ export function ButtonStrip({
   return (
     <div className="button-strip-wrapper">
       <div className="button-strip">
-        {/* <LcarsButton
-          color="primary"
-          onClick={toggleListeningMode}
-          aria-pressed={listeningMode}
-          aria-label={listeningMode ? "Listening on" : "Listening off"}
-        >
-          {listeningMode ? "🎙️" : "🔕"}
-        </LcarsButton> */}
-
         <div className="setting-button" onClick={toggleListeningMode}>
           {listeningMode ? "🎙️" : "🔕"}
         </div>
@@ -47,10 +41,23 @@ export function ButtonStrip({
           {speakingOn ? "🗣️" : "😶"}
         </div>
 
-        {/* <LcarsButton color="primary">2</LcarsButton>
-        <LcarsButton color="primary">3</LcarsButton>
-        <LcarsButton color="primary">4</LcarsButton> */}
+        <div
+          className={`setting-button setting-button--grounded-toggle ${isGrounded ? "setting-button--on" : ""}`}
+          onClick={() => setIsGrounded(!isGrounded)}
+          role="switch"
+          aria-checked={isGrounded}
+          aria-label="Use local directives"
+          title="Use local directives"
+        >
+          📋
+        </div>
       </div>
+      <label className="button-strip-label">
+        <span className="button-strip-label-text">Use local directives</span>
+        <span className="button-strip-label-value" aria-live="polite">
+          {isGrounded ? "On" : "Off"}
+        </span>
+      </label>
       {status && (
         <p className="button-strip-status" role="status">
           {status}
