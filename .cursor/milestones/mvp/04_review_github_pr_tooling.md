@@ -1,4 +1,4 @@
-# Subspace Link (Github Integration)
+# Review Github PR tooling.
 
 ## Goal
 
@@ -21,26 +21,25 @@ Implement a secure SecretManager service in Spring Boot to store the token (use 
 
 Configure the GitHub Java library (e.g., org.kohsuke:github-api) within the Kernel.
 
-[ ] Task 2: The "Remote Scanner" Domain Service
-Build a specialized GitHubDomainService that can:
+[ ] Task 2 The "PR Intelligence Bridge"
+Goal: Create a direct pipeline where ARGOS-1 can fetch a PR and immediately process it against your local directives.
 
-List open Pull Requests for a specific repository.
+Implement GitHubService: Create a Spring Boot service using org.kohsuke:github-api that accepts a PR ID, fetches the diff string, and identifies which files were changed.
 
-Fetch the diff of a specific PR ID.
+Create the "Review Controller": Build a simple endpoint (e.g., /api/review/{prId}) that triggers the following sequence:
 
-Retrieve the full content of individual files mentioned in the diff for deeper context.
+Fetch: Pull the PR diff from GitHub.
+
+Ground: Read the .argos/directives Markdown files.
+
+Analyze: Send the combined [Directives] + [Diff] to your LLM Kernel.
+
+Senior Note: To save tokens and avoid the "clutter" of massive diffs, only fetch the diff for the initial scan. If the LLM identifies a specific file as "suspicious," you can then fetch the full content of that single file.
 
 [ ] Task 3: Diff Parsing & Cleaning
 Implement a "Diff Sanitizer" utility to strip out non-essential metadata (like hunk headers @@ -1,4 +1,4 @@) to save LLM tokens.
 
 Create a logic gate that prevents ARGOS from fetching binary files (images, PDFs) or massive generated files (like package-lock.json).
 
-[ ] Task 4: Autonomous PR Review Loop
-Create a new "Agent Tool" that allows ARGOS to say: "I will now fetch the code from PR #101 to check for Directive violations."
-
-Link the GitHub data fetcher to the Intelligence Service so the PR code is injected into the prompt alongside the relevant Directives.
-
 [ ] Task 5: Tactical Status Updates
-Update the React Console to show "Subspace Connectivity" status.
-
-Display a "Incoming Transmission" alert when ARGOS is successfully fetching code from GitHub.
+Update the React Console to show what is going on and at what stage in the process you are in. This might already work because of our thought logic.

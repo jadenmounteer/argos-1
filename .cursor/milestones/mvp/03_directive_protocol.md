@@ -30,10 +30,7 @@ Add a caching layer using a simple Map or Caffeine so the system doesn't hit the
 
 [ ] Task 3: Semantic Router (The Logic)
 Implement logic that allows ARGOS-1 to decide which directive is relevant to a query.
-
-MVP Approach: A "keyword-based" trigger (e.g., if the user says "security," ARGOS fetches security.md).
-
-Advanced Approach: A "System Directive" that always prepends the most critical rules to every prompt.
+For MVP, just bundle all directives into a single "System Prompt."
 
 [ ] Task 4: Prompt Engineering & Grounding
 Modify the IntelligenceService to wrap the user's query in a "Grounding Template."
@@ -42,9 +39,4 @@ Template Structure: [CONTEXT: Directives] -> [USER QUERY] -> [PERSONALITY CONSTR
 
 Ensure the LLM cites which directive it is following (e.g., "Per Directive 1.2, I recommend moving this logic...").
 
-[ ] Task 5: Directory Watcher (Live Updates)
-Implement a WatchService in Java that detects when you change a Markdown file in the .argos/directives folder.
-
-Log a "Sensor Update" to the Tactical Console when a directive is modified, showing ARGOS-1 is "Re-calibrating."
-
-#### [ ] Task 6: Include Unit Tests for the DirectiveScanner to ensure it handles missing files or malformed Markdown gracefully.
+#### [ ] Task 5: Include Unit Tests for the DirectiveScanner to ensure it handles missing files or malformed Markdown gracefully.
