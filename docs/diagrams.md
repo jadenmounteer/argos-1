@@ -76,8 +76,9 @@ flowchart TD
 
 - CommandGateway orchestrates LlmStreamPort and SystemPromptProvider; OllamaStreamingAdapter calls Ollama via LangChain4j.
 
-## Agentic AI workflow
+## Agentic AI Architecture
 
+```mermaid
 flowchart TD
 subgraph REST [REST Adapter]
 KC[KernelController]
@@ -85,9 +86,9 @@ end
 
 subgraph App [Application Layer]
 CG[CommandGateway]
-IR[Intent & Voice Command Router]
+IR[Intent & Voice Regex Router]
 TH[TokenHandler]
-CRD[ChatRequestDTO - isGrounded flag]
+DTO[JsonRpcParams - input, isGrounded, internalContext]
 end
 
 subgraph Domain [Domain Ports]
@@ -100,35 +101,38 @@ end
 subgraph Infra [Infrastructure]
 OSA[OllamaStreamingAdapter]
 ASP[ArgosSystemPromptProvider]
-DSS[DirectiveScannerService - Local FS]
-GHS[GitHubService - Remote API]
-DSN[DiffSanitizer - Utility]
+DSS[DirectiveScannerService]
+GHS[GitHubService]
+DSN[DiffSanitizer]
 end
 
 Ext[Ollama LLM]
 GAPI[GitHub API]
 
 %% Request Flow
-KC -->|ChatRequestDTO| CG
-CG --> IR
+KC -->|DTO| CG
+CG -.->|1. Parse Intent| IR
 
-%% Command Detection & Hydration
-IR -->|Regex: 'Review PR'| GRP
+%% Thought Injection Flow
+CG -->|2. Inject Status Thoughts| TH
+
+%% Hydration Flow
+CG -->|3. Hydrate Diff| GRP
 GRP --> GHS
 GHS -.-> DSN
 GHS --- GAPI
 
-%% Grounding Logic
-IR -->|if Toggle ON or PR found| DSP
+CG -->|4. Hydrate Directives| DSP
 DSP --> DSS
 
-%% Intelligence Loop
-CG -->|Aggregated Context| SPP
+%% Prompt Construction & Execution
+CG -->|5. Fully Hydrated DTO| SPP
 SPP --> ASP
-CG -->|Grounded Prompt| LSP
+CG -->|6. Layered Prompt| LSP
 LSP --> OSA
-OSA -->|Stream| Ext
+OSA -->|7. Stream Tokens| Ext
 
 %% Output
 OSA --> TH
 TH --> Emitter[SseEmitter]
+```

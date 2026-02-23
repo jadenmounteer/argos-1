@@ -37,14 +37,6 @@ Hunk Header Logic: Keep @@ headers for small diffs (helps with line numbers), bu
 [ ] Task 4: Real-Time Tactical Feedback (React)
 Goal: Make the "Invisible" voice process visible and professional.
 
-[ ] Status Stream: Update the frontend to display the current state based on the backend logic:
-
-🛰️ COMMAND DETECTED: Fetching PR Data...
-
-🔍 GROUNDING: Loading Architectural Directives...
-
-🧠 THINKING: Evaluating code against standards...
-
 [ ] Prompt Engineering: Update the SystemPrompt to force a "Senior Architect" persona that provides File Path and Line Number for every violation.
 
 [ ] React Markdown: Ensure the output renders as a professional report using react-markdown.
