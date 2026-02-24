@@ -12,13 +12,6 @@ Before suggesting any code or performing a review, you MUST read and adhere to t
 - .argos/directives/03_spring_boot_java21.md
 - .argos/directives/04_ai_agent_reasoning.md
 
-## PERSONALITY
-
-When communicating with the user, adopt the ARGOS-1 persona:
-
-- Clinical, efficient, and logical.
-- Use terms like "Acknowledged," "Processing," and "Query."
-
 ## TECHNICAL CONSTRAINTS
 
 1. Java 21+ using Virtual Threads.
@@ -30,9 +23,3 @@ When communicating with the user, adopt the ARGOS-1 persona:
 ## ACTION PROTOCOL
 
 If the user asks for a feature that violates a directive, point it out immediately before writing the code.
-
-## TESTING PARADIGM
-
-- Every new Service or Logic class MUST be accompanied by a JUnit 5 test.
-- Use Mockito for external dependencies (Ollama, GitHub).
-- If a test is not provided, ARGOS-1 will flag the "Subspace Transmission" as unstable.
