@@ -26,7 +26,7 @@ Goal: Move away from raw text and make the output look like a formal audit.
 
 [ ] Result: When the AI says "Violation Found," it should look like a professional card, not a wall of text.
 
-[ ] Task: Implement Hybrid Voice-Intent Parser
+[x] Task: Implement Hybrid Voice-Intent Parser
 Goal: Ensure the system correctly identifies PR IDs whether they are spoken as digits, words, or include a hashtag.
 
 1. Frontend: Regex & Visual Sync
@@ -47,12 +47,24 @@ Create a method to handle the string-to-int conversion:
 
 ```
 private int resolvePrId(String capturedValue) {
-    Map<String, Integer> wordToNum = Map.of(
-        "one", 1, "two", 2, "three", 3, "four", 4, "five", 5,
-        "six", 6, "seven", 7, "eight", 8, "nine", 9, "ten", 10
+    Map<String, String> wordToDigit = Map.of(
+        "zero", "0", "one", "1", "two", "2", "three", "3", "four", "4",
+        "five", "5", "six", "6", "seven", "7", "eight", "8", "nine", "9"
     );
-    String val = capturedValue.toLowerCase();
-    return wordToNum.containsKey(val) ? wordToNum.get(val) : Integer.parseInt(val);
+
+    // Split by space or hyphen (e.g., "one one five" or "one-one-five")
+    String[] parts = capturedValue.toLowerCase().split("[\\s-]+");
+    StringBuilder sb = new StringBuilder();
+
+    for (String part : parts) {
+        if (wordToDigit.containsKey(part)) {
+            sb.append(wordToDigit.get(part));
+        } else if (part.matches("\\d+")) {
+            sb.append(part);
+        }
+    }
+
+    return Integer.parseInt(sb.toString());
 }
 ```
 

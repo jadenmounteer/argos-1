@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.util.Map.entry;
+
 /**
  * Application layer: JSON-RPC bridge and SSE stream. Orchestrates LlmStreamPort, SystemPromptProvider,
  * DirectivePort, and GitRepoPort. Hydrates params (PR diff, directives) and assembles system prompt.
@@ -25,7 +27,7 @@ public class CommandGateway {
     private static final String THOUGHT_OPEN = "<thought>";
     private static final String THOUGHT_CLOSE = "</thought>";
     private static final Pattern PR_INTENT = Pattern.compile(
-            "(?i)(?:review|analyze|check|scan)\\s+(?:pull\\s+request|pr)\\s+(?:number\\s+)?(\\d+)");
+            "(?i)(?:review|analyze|check|scan)\\s+(?:pull\\s*request|pr)\\s*(?:number\\s+)?#?((?:\\d+|\\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten)\\b)(?:[\\s-]+(?:\\d+|\\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten)\\b))*)");
 
     private final LlmStreamPort llmStreamPort;
     private final SystemPromptProvider systemPromptProvider;
@@ -188,8 +190,8 @@ public class CommandGateway {
         Matcher prMatcher = PR_INTENT.matcher(input);
         if (prMatcher.find()) {
             try {
-                prId = Integer.valueOf(prMatcher.group(1));
-            } catch (NumberFormatException ignored) {
+                prId = resolvePrId(prMatcher.group(1).trim());
+            } catch (Exception ignored) {
             }
         }
 
@@ -250,6 +252,31 @@ public class CommandGateway {
             } catch (Exception ignored) {
             }
         }
+    }
+
+    /**
+     * Resolves captured PR id string (digits and/or number-words) to an int.
+     * E.g. "one one five ten" -> 11510, "1 1 5 10" -> 11510.
+     * @throws NumberFormatException if no valid parts or parse fails
+     */
+    private static int resolvePrId(String capturedValue) {
+        Map<String, String> wordToDigit = Map.ofEntries(
+                entry("zero", "0"), entry("one", "1"), entry("two", "2"), entry("three", "3"),
+                entry("four", "4"), entry("five", "5"), entry("six", "6"), entry("seven", "7"),
+                entry("eight", "8"), entry("nine", "9"), entry("ten", "10"));
+        String[] parts = capturedValue.toLowerCase().trim().split("[\\s-]+");
+        StringBuilder sb = new StringBuilder();
+        for (String part : parts) {
+            if (wordToDigit.containsKey(part)) {
+                sb.append(wordToDigit.get(part));
+            } else if (part.matches("\\d+")) {
+                sb.append(part);
+            }
+        }
+        if (sb.length() == 0) {
+            throw new NumberFormatException("No valid PR id parts: " + capturedValue);
+        }
+        return Integer.parseInt(sb.toString());
     }
 
     private void emitActionPlaceholder(SseEmitter emitter) {

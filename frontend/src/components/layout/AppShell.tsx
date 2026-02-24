@@ -10,8 +10,9 @@ import { useVocal } from "../../context/VocalContext";
  * Root layout: main wrapper (frame with title break), then two columns —
  * left: buttons + prompt, right: logs and responses.
  */
-/** Matches PR review intent; keep in sync with backend CommandGateway. */
-const PR_INTENT_REGEX = /(?:review|analyze|check|scan)\s+(?:pull\s+request|pr)\s+(?:number\s+)?(\d+)/i;
+/** Matches PR review intent; keep in sync with backend CommandGateway. Captures sequence of digits and/or number-words (zero–ten). */
+const PR_INTENT_REGEX =
+  /(?:review|analyze|check|scan)\s+(?:pull\s*request|pr)\s*(?:number\s+)?#?((?:\d+|\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten)\b)(?:[\s-]+(?:\d+|\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten)\b))*)/i;
 
 export function AppShell({
   sendCommand,
