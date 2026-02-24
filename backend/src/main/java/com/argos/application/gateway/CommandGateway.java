@@ -5,6 +5,7 @@ import com.argos.domain.ports.GitRepoPort;
 import com.argos.domain.ports.LlmStreamPort;
 import com.argos.domain.ports.SystemPromptProvider;
 import com.argos.domain.ports.TokenHandler;
+import com.argos.infrastructure.github.DiffSanitizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -30,17 +31,20 @@ public class CommandGateway {
     private final SystemPromptProvider systemPromptProvider;
     private final DirectivePort directivePort;
     private final GitRepoPort gitRepoPort;
+    private final DiffSanitizer diffSanitizer;
     private final long sseTimeoutMs;
 
     public CommandGateway(LlmStreamPort llmStreamPort,
                           SystemPromptProvider systemPromptProvider,
                           DirectivePort directivePort,
                           GitRepoPort gitRepoPort,
+                          DiffSanitizer diffSanitizer,
                           @Value("${argos.sse.timeout-ms:60000}") long sseTimeoutMs) {
         this.llmStreamPort = llmStreamPort;
         this.systemPromptProvider = systemPromptProvider;
         this.directivePort = directivePort;
         this.gitRepoPort = gitRepoPort;
+        this.diffSanitizer = diffSanitizer;
         this.sseTimeoutMs = sseTimeoutMs;
     }
 
@@ -197,6 +201,7 @@ public class CommandGateway {
                 if (internalContext == null) {
                     internalContext = "";
                 }
+                internalContext = diffSanitizer.sanitize(internalContext);
             } catch (Exception ignored) {
                 internalContext = "";
             }

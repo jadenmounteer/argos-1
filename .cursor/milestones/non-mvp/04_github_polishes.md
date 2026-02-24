@@ -25,3 +25,35 @@ Goal: Move away from raw text and make the output look like a formal audit.
 [ ] Syntax Highlighting: Ensure code snippets within the AI's review are formatted correctly.
 
 [ ] Result: When the AI says "Violation Found," it should look like a professional card, not a wall of text.
+
+[ ] Task: Implement Hybrid Voice-Intent Parser
+Goal: Ensure the system correctly identifies PR IDs whether they are spoken as digits, words, or include a hashtag.
+
+1. Frontend: Regex & Visual Sync
+   [ ] Update PR_INTENT_REGEX in App.tsx (or your React Voice component):
+
+New Regex: /(?:review|analyze|check|scan)\s+(?:pull\s*request|pr)\s*(?:number\s+)?#?(\d+|one|two|three|four|five|six|seven|eight|nine|ten)/i
+
+Why: This adds #? for the hashtag and the word group (one|two|...) to the capture group.
+
+2. Backend: The "Semantic Resolver"
+   [ ] Update CommandGateway.java Regex:
+
+Sync the backend Regex to match the frontend exactly to ensure the "Brain" and "Eyes" are seeing the same thing.
+
+[ ] Implement resolvePrId Helper:
+
+Create a method to handle the string-to-int conversion:
+
+```
+private int resolvePrId(String capturedValue) {
+    Map<String, Integer> wordToNum = Map.of(
+        "one", 1, "two", 2, "three", 3, "four", 4, "five", 5,
+        "six", 6, "seven", 7, "eight", 8, "nine", 9, "ten", 10
+    );
+    String val = capturedValue.toLowerCase();
+    return wordToNum.containsKey(val) ? wordToNum.get(val) : Integer.parseInt(val);
+}
+```
+
+Ensure this resolvePrId method is a private helper in the Gateway. This keeps it "internal" to the input-handling logic.
